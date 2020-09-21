@@ -23,6 +23,13 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.sequence(Parser... parsers)`](#gradiansequenceparser-parsers---object--arraylistobject--string)
 - [`.between(Parser left, Parser right, Parser middle)`](#gradianbetweenparser-left-parser-right-parser-middle---result-type-of-middle)
 - [`.choice(Parser... parsers)`](#gradianchoiceparser-parsers---object)
+- [`.many(Parser parser)`](#gradianmanyparser-parser---array--arraylist-of-result-type-of-parser-or-string)
+- [`.atLeast(Parser parser, int minimumCount)`](#gradianatleastparser-parser-int-minimumcount---array--arraylist-of-result-type-of-parser-or-string)
+- [`.atLeastOne(Parser parser)`](#gradianatleastoneparser-parser---array--arraylist-of-result-type-of-parser-or-string)
+- [`.atMost(Parser parser, int maximumCount)`](#gradianatmostparser-parser-int-maximumcount---array--arraylist-of-result-type-of-parser-or-string)
+- [`.manyBetween(Parser parser, int minimumCount, int maximumCount)`](#gradianmanybetweenparser-parser-int-minimumcount-int-maximumcount---array--arraylist-of-result-type-of-parser-or-string)
+- [`.exactly(Parser parser, int count)`](#gradianexactlyparser-parser-int-count---array--arraylist-of-result-type-of-parser-or-string)
+- [`.separatedBy(Parser separator, Parser values)`](#gradianseparatedbyparser-separator-parser-values---array--arraylist-of-result-type-of-values-or-string)
 
 ### `Gradian.digit` -> `String`
 A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.
@@ -147,3 +154,77 @@ A parser which parses a child parser between two other parsers. This parser will
 ### `Gradian.choice(Parser... parsers)` -> `Object`
 A parser which attempts to parse each "choice" it is given. The first parser that doesn't fail is the one that is chosen, and the result from that parser is used. If every choice fails, then this parser will fail.
 - `Parser... parsers` -> A list of choices, which will be attempted in that order
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.many(Parser parser)` -> `Array | ArrayList` of result type of `parser`, or `String`
+A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`.
+- `Parser parser` -> The parser to repeat
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.atLeast(Parser parser, int minimumCount)` -> `Array | ArrayList` of result type of `parser`, or `String`
+A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser cannot parse enough instances, it fails.
+- `Parser parser` -> The parser to repeat
+- `int minimumCount` -> The minimum amount of repetitions to allow
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.atLeastOne(Parser parser)` -> `Array | ArrayList` of result type of `parser`, or `String`
+A parser which parses at least one instance of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser cannot parse at least one instance, it fails.
+- `Parser parser` -> The parser to repeat
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.atMost(Parser parser, int maximumCount)` -> `Array | ArrayList` of result type of `parser`, or `String`
+A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser parses too many instances, it fails.
+- `Parser parser` -> The parser to repeat
+- `int maximumCount` -> The maximum amount of repetitions to allow
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.manyBetween(Parser parser, int minimumCount, int maximumCount)` -> `Array | ArrayList` of result type of `parser`, or `String`
+A parser which parses multiple instances of the parser passed into it, the amount of which will be in a range. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser parses too many of too few instances, it fails.
+- `Parser parser` -> The parser to repeat
+- `int minimumCount` -> The minimum amount of repetitions to allow
+- `int maximumCount` -> The maximum amount of repetitions to allow
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.exactly(Parser parser, int count)` -> `Array | ArrayList` of result type of `parser`, or `String`
+A parser which parses a certain amount of instances of the parser passes into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser doesn't parse the right amount of instances, it fails.
+- `Parser parser` -> The parser to repeat
+- `int count` -> The amount of repetitions to parse
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.separatedBy(Parser separator, Parser values)` -> `Array | ArrayList` of result type of `values`, or `String`
+A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`. If you would like to join the resulting values, use `.join(String delimiter)`.
+- `Parser separator` -> The separator between values
+- `Parser values` -> The values to parse between separators.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>

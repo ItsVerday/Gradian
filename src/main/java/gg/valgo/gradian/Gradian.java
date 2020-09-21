@@ -125,8 +125,8 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called.
-     * This parser returns an array of results, or an ArrayList if `.asArrayList()` is called.
+     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called.  If you would like to join the resulting values, use `.join(String delimiter)`.
+     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
      * @return The many parser.
      */
@@ -135,19 +135,8 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`.
-     * This parser returns an array or ArrayList of values, separated by the separator.
-     * @param separator The separator between values.
-     * @param values The values to parse between separators.
-     * @return A separatedBy parser.
-     */
-    public static <ResultType> SeparatedByParser<ResultType> separatedBy(Parser<?> separator, Parser<ResultType> values) {
-        return new SeparatedByParser<>(separator, values);
-    }
-
-    /**
-     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If the parser cannot parse enough instances, it fails.
-     * This parser returns an array of results, or an ArrayList if `.asArrayList()` is called.
+     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser cannot parse enough instances, it fails.
+     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
      * @param minimumCount The minimum amount of repetitions to allow.
      * @return The atLeast parser.
@@ -157,8 +146,8 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses at least one instance of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If the parser cannot parse at least one instance, it fails.
-     * This parser returns an array of results, or an ArrayList if `.asArrayList()` is called.
+     * A parser which parses at least one instance of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser cannot parse at least one instance, it fails.
+     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
      * @return The atLeastOne parser.
      */
@@ -167,8 +156,8 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If the parser parses too many instances, it fails.
-     * This parser returns an array of results, or an ArrayList if `.asArrayList()` is called.
+     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser parses too many instances, it fails.
+     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
      * @param maximumCount The maximum amount of repetitions to allow.
      * @return The atMost parser.
@@ -178,8 +167,8 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses multiple instances of the parser passed into it, the amount of which will be in a range. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If the parser parses too many of too few instances, it fails.
-     * This parser returns an array of results, or an ArrayList if `.asArrayList()` is called.
+     * A parser which parses multiple instances of the parser passed into it, the amount of which will be in a range. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser parses too many of too few instances, it fails.
+     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
      * @param minimumCount The minimum amount of repetitions to allow.
      * @param maximumCount The maximum amount of repetitions to allow.
@@ -190,14 +179,25 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses a certain amount of instances of the parser passes into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If the parser doesn't parse the right amount of instances, it fails.
-     * This parser returns an array of results, or an ArrayList if `.asArrayList()` is called.
+     * A parser which parses a certain amount of instances of the parser passes into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser doesn't parse the right amount of instances, it fails.
+     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
      * @param count The amount of repetitions to parse.
      * @return The exactly parser.
      */
     public static <ResultType> ManyParser<ResultType> exactly(Parser<ResultType> parser, int count) {
         return (ManyParser<ResultType>) manyBetween(parser, count, count).setParserName("exactly");
+    }
+
+    /**
+     * A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`. If you would like to join the resulting values, use `.join(String delimiter)`.
+     * This parser returns an array or ArrayList of values, separated by the separator, or a String if `.join(String delimiter) is called`.
+     * @param separator The separator between values.
+     * @param values The values to parse between separators.
+     * @return A separatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> separatedBy(Parser<?> separator, Parser<ResultType> values) {
+        return new SeparatedByParser<>(separator, values);
     }
 
     /**
