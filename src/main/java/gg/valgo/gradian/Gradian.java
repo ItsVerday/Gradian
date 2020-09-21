@@ -29,13 +29,13 @@ public class Gradian {
     public static final RegexParser letters = (RegexParser) new RegexParser("^[A-Za-z]+").setParserName("letters");
 
     /**
-     * This parser matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use `Gradian.optionalWhitespace` instead. The parser will match whitespace characters until the next character is not a whitespace character.
+     * A parser which matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use `Gradian.optionalWhitespace` instead. The parser will match whitespace characters until the next character is not a whitespace character.
      * This parser returns a string.
      */
     public static final RegexParser whitespace = (RegexParser) new RegexParser("^\\s+").setParserName("whitespace");
 
     /**
-     * This parser optionally matches any whitespace character. If there is no whitespace present, it returns an empty string. Otherwise, it will return a string with the whitespace. This parser will match all whitespace characters, up until a non-whitespace character.
+     * A parser which optionally matches any whitespace character. If there is no whitespace present, it returns an empty string. Otherwise, it will return a string with the whitespace. This parser will match all whitespace characters, up until a non-whitespace character.
      * This parser returns a string.
      */
     public static final Parser<String> optionalWhitespace = new MaybeParser<>(whitespace).valueIfAbsent("").mapType();
@@ -47,7 +47,7 @@ public class Gradian {
     public static final AnyCharacterParser anyCharacter = new AnyCharacterParser();
 
     /**
-     * This parser matches the end of the input. It results in a null value.
+     * This parser matches the end of the input. It results in a null value. This parser will fail if the end of input has not been reached.
      * This parser returns a null value.
      */
     public static final Parser<Object> endOfInput = new EndOfInputParser();
@@ -63,7 +63,7 @@ public class Gradian {
     }
 
     /**
-     * Returns a parser that matches a single character. Use `.asString()` if you want to receive a string as the result. This parser will fail if it cannot match the character.
+     * Returns a parser that matches a single character. Use `.asString()` if you want to receive a string as the result. This parser will fail if it cannot match the specified character.
      * This parser returns a character, or a string if `.asString()` is called on it.
      * @param character The character to match.
      * @return The character parser.
@@ -73,7 +73,7 @@ public class Gradian {
     }
 
     /**
-     * Returns a parser which optionally matches another parser. If a match cannot be made, the parser has a result of null. If you wish to ignore the result if it is absent, use `.ignoreIfAbsent()`. This parser cannot fail.
+     * Returns a parser which optionally matches another parser. If a match cannot be made, the parser has a result of null. If you wish to ignore the result if it is absent, use `.ignoreIfAbsent()`. If you wish to return a specific value if the result is absent, use `.valueIfAbsent(Object value)`. This parser cannot fail.
      * This parser returns the result of its child parser if the child parser succeeded. If not, it returns null, or the result is ignored if `.ignoreIfAbsent()` is called.
      * @param parser The parser to possibly match.
      * @return The maybe parser.
@@ -93,9 +93,9 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses a sequence of parsers. If any parser in the sequence fails, then the sequence parser fails. By default, this parser results in an array. If you would like to receive an ArrayList back, use `.asArrayList()`.
+     * A parser which parses a sequence of parsers. If any parser in the sequence fails, then the sequence parser fails. By default, this parser results in an array. If you would like to receive an ArrayList back, use `.asArrayList()`. If you would like to join the resulting values, use `.join(String delimiter)`.
      * This parser returns an array or ArrayList of results from the results of the elements in its sequence.
-     * @param parsers A list of parsers.
+     * @param parsers A list of parsers, which will be used in the sequence.
      * @return The sequence parser.
      */
     public static SequenceParser sequence(Parser<?>... parsers) {
@@ -115,20 +115,9 @@ public class Gradian {
     }
 
     /**
-     * A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`.
-     * This parser returns an array or ArrayList of values, separated by the separator.
-     * @param separator The separator between values.
-     * @param values The values to parse between separators.
-     * @return A separatedBy parser.
-     */
-    public static <ResultType> SeparatedByParser<ResultType> separatedBy(Parser<?> separator, Parser<ResultType> values) {
-        return new SeparatedByParser<>(separator, values);
-    }
-
-    /**
      * A parser which attempts to parse each "choice" it is given. The first parser that doesn't fail is the one that is chosen, and the result from that parser is used. If every choice fails, then this parser will fail.
      * This parser returns the result of the first parser that "passes".
-     * @param parsers A list of choices.
+     * @param parsers A list of choices, which will be attempted in that order.
      * @return The choice parser.
      */
     public static ChoiceParser choice(Parser<?>... parsers) {
@@ -143,6 +132,17 @@ public class Gradian {
      */
     public static <ResultType> ManyParser<ResultType> many(Parser<ResultType> parser) {
         return (ManyParser<ResultType>) new ManyParser<>(parser, -1, -1).setParserName("many");
+    }
+
+    /**
+     * A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`.
+     * This parser returns an array or ArrayList of values, separated by the separator.
+     * @param separator The separator between values.
+     * @param values The values to parse between separators.
+     * @return A separatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> separatedBy(Parser<?> separator, Parser<ResultType> values) {
+        return new SeparatedByParser<>(separator, values);
     }
 
     /**
