@@ -3,15 +3,7 @@ package gg.valgo.gradian;
 import gg.valgo.gradian.parsers.*;
 import gg.valgo.gradian.util.Coroutine;
 
-import java.util.ArrayList;
-
 public class Gradian {
-    /**
-     * A parser which matches any character. It results in a character, or a string if `.asString()` is called. This parser will only fail if the end of input has been reached.
-     * This parser returns a character, or a string if `.asString()` is called.
-     */
-    public static final AnyCharacterParser anyCharacter = new AnyCharacterParser();
-
     /**
      * A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.
      * This parser returns a string.
@@ -47,6 +39,12 @@ public class Gradian {
      * This parser returns a string.
      */
     public static final Parser<String> optionalWhitespace = new MaybeParser<>(whitespace).valueIfAbsent("").mapType();
+
+    /**
+     * A parser which matches any character. It results in a character, or a string if `.asString()` is called. This parser will only fail if the end of input has been reached.
+     * This parser returns a character, or a string if `.asString()` is called.
+     */
+    public static final AnyCharacterParser anyCharacter = new AnyCharacterParser();
 
     /**
      * This parser matches the end of the input. It results in a null value.

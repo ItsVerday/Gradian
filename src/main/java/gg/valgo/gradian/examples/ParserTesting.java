@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class ParserTesting {
     public static final Parser<Integer> number = Gradian.digits.map(Integer::parseInt);
     public static final Parser<String> letters = Gradian.coroutine(ctx -> {
-        int count = (Integer) ctx.yield(number);
+        int count = (int) ctx.yield(number);
         ctx.yield(Gradian.string("|"));
         String letters = "";
 
