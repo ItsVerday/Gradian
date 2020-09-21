@@ -9,7 +9,7 @@ With parser combinator libraries, parsers are built up from smaller, simpler par
 - [`.digits`](#gradiandigits---string)
 - [`.letter`](#gradianletter---string)
 - [`.letters`](#gradianletters---string)
-- [`.whitespace`](#gradianwhitespe---string)
+- [`.whitespace`](#gradianwhitespace---string)
 - [`.optionalWhitespace`](#gradianoptionalwhitespace---string)
 
 ### `Gradian.digit` -> `String`
@@ -45,7 +45,7 @@ A parser which parses 1 or more letters. This parser results in a string. This p
 </details>
 
 ### `Gradian.whitespace` -> `String`
-This parser matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use [`Gradian.optionalWhitespace`](#gradiandigit---string) instead. The parser will match whitespace characters until the next character is not a whitespace character.
+This parser matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use [`Gradian.optionalWhitespace`](#gradianoptionalwhitespace---string) instead. The parser will match whitespace characters until the next character is not a whitespace character.
 <details>
     <summary>Examples</summary>
 
