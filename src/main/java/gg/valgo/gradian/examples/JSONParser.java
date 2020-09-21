@@ -2,7 +2,6 @@ package gg.valgo.gradian.examples;
 
 import gg.valgo.gradian.Gradian;
 import gg.valgo.gradian.Parser;
-import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -140,22 +139,30 @@ public class JSONParser {
     /**
      * Parses a key value pair.
      */
-    public static final Parser<Pair<String, Object>> parseKeyValue = Gradian.between(
+    public static final Parser<KeyValuePair> parseKeyValue = Gradian.between(
             Gradian.optionalWhitespace,
             Gradian.optionalWhitespace,
             Gradian.sequence(
                     parseString,
                     keyValueSeparator,
                     parseJSON
-            ).map(values -> new Pair<>(values[0], values[1]))
+            ).map(values -> new KeyValuePair((String) values[0], values[1]))
     ).mapType();
 
     /**
      * Parses an object.
      */
     public static final Parser<HashMap<String, Object>> parseObject = Gradian.between(
-            Gradian.string("{"),
-            Gradian.string("}"),
+            Gradian.between(
+                    Gradian.optionalWhitespace,
+                    Gradian.optionalWhitespace,
+                    Gradian.string("{")
+            ),
+            Gradian.between(
+                    Gradian.optionalWhitespace,
+                    Gradian.optionalWhitespace,
+                    Gradian.string("}")
+            ),
             Gradian.separatedBy(
                     Gradian.between(
                             Gradian.optionalWhitespace,
@@ -164,10 +171,10 @@ public class JSONParser {
                     ),
                     parseKeyValue
             ).asArrayList()
-    ).<ArrayList<Pair<String, Object>>>mapType()
+    ).<ArrayList<KeyValuePair>>mapType()
     .map(result -> {
         HashMap<String, Object> map = new HashMap<>();
-        for (Pair<String, Object> keyValuePair : result) {
+        for (KeyValuePair keyValuePair : result) {
             map.put(keyValuePair.getKey(), keyValuePair.getValue());
         }
 
@@ -179,6 +186,24 @@ public class JSONParser {
             System.out.println(parseJSON.getResult("{\"hi\": [1, 2, 3, true, false, null, {\"a\": 1, \"b\": 2}], \"gaming moment\": true}"));
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static class KeyValuePair {
+        private String key;
+        private Object value;
+
+        public KeyValuePair(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public Object getValue() {
+            return value;
         }
     }
 }
