@@ -212,7 +212,7 @@ public class Gradian {
 
     /**
      * Creates a coroutine parser, allowing you to run custom logic in a parser. This is an advanced parser. It will fail if any of the parsers used inside of it fail. Otherwise, it will result in the value returned from the lambda.
-     * @param executor A lambda taking in a context, with a `.yield()` method. When you want to parse a value, use `.yield(parser)` to parse that parser, and get its result back.
+     * @param executor A lambda taking in a context, with a `.yield()` method. When you want to parse a value, use `.yield(parser)` to parse that parser, and get its result back. The context also has a `.reject()` method, which will exit out of the coroutine and fail the parser.
      * @return A coroutine parser.
      */
     public static <ResultType> CoroutineParser<ResultType> coroutine(Coroutine.CoroutineExecutor<ResultType, Parser<?>, Object> executor) {

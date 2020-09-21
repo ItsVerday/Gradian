@@ -8,6 +8,14 @@ With parser combinator libraries, parsers are built up from smaller, simpler par
 This library is named Gradian because of the naming of the node package it is based on, [arcsecond](https://github.com/francisrstokes/arcsecond). Both an arcsecond and a gradian are (somewhat obscure) units of angle.
 
 ## Reference
+### Parser Methods
+- [`.run(String input)`](#parserrunstring-input---parserstate)
+- [`.getResult(String input)`](#parsergetresultstring-input---)
+- [`.map(ResultMapper mapper)`](#parsermapresultmapper-mapper---parser)
+- [`.<NewResultType>mapType()`](#parsernewresulttypemaptype---parser)
+- [`.mapState(StateMapper mapper)`](#parsermapstatestatemapper-mapper---parser)
+
+### Parsers
 - [`.digit`](#gradiandigit---string)
 - [`.digits`](#gradiandigits---string)
 - [`.letter`](#gradianletter---string)
@@ -30,7 +38,52 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.manyBetween(Parser parser, int minimumCount, int maximumCount)`](#gradianmanybetweenparser-parser-int-minimumcount-int-maximumcount---array--arraylist-of-result-type-of-parser-or-string)
 - [`.exactly(Parser parser, int count)`](#gradianexactlyparser-parser-int-count---array--arraylist-of-result-type-of-parser-or-string)
 - [`.separatedBy(Parser separator, Parser values)`](#gradianseparatedbyparser-separator-parser-values---array--arraylist-of-result-type-of-values-or-string)
+- [`.anythingExcept(Parser parser)`](#gradiananythingexceptparser-parser---char)
+- [`.coroutine(CoroutineExecutor executor)`](#gradiancoroutinecoroutineexecutor-executor---)
+- [`.recursive(ParserProducer producer)`](#gradianrecursiveparserproducer-producer---)
 
+## Parser Methods
+### `parser.run(String input)` -> `ParserState`
+Runs a parser on a given string. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
+- `String input` -> The string to parse
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `parser.getResult(String input)` -> `???`
+Runs a parser on a given string and returns the result, or throws a ParserException if the parsing fails.
+- `String input` -> The string to parse
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `parser.map(ResultMapper mapper)` -> `Parser`
+Maps the result of a parser to a new value. Useful for processing the result in the parser itself, instead of externally.
+- `ResultMapper mapper` -> A lambda which takes a value, the result of the parser, and returns a new value
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `parser.<NewResultType>mapType()` -> `Parser`
+A utility method, used to cast the result of a parser to a different type. In many situations, this method will be called without the type generic, if the type can be inferred.
+- `NewResultType` -> The type to cast the result to
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `parser.mapState(StateMapper mapper)` -> `Parser`
+Maps a resulting parser state to a new parser state. Can be useful for more advanced parsers, where the parser index, or the exception needs to be modified.
+- `StateMapper mapper` -> A lambda which takes a parser state, the resulting state of the parser, and returns a new parser state
+
+## Parsers
 ### `Gradian.digit` -> `String`
 A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.
 <details>
@@ -223,6 +276,33 @@ A parser which parses a certain amount of instances of the parser passes into it
 A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`. If you would like to join the resulting values, use `.join(String delimiter)`.
 - `Parser separator` -> The separator between values
 - `Parser values` -> The values to parse between separators.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.anythingExcept(Parser parser)` -> `char`
+A parser which matches anything except the parser passed into it. If the child parser passes, this parser will fail. Otherwise, the result is the current character in the string.
+- `Parser parser` -> The parser to not match
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.coroutine(CoroutineExecutor executor)` -> `???`
+Creates a coroutine parser, allowing you to run custom logic in a parser. This is an advanced parser. It will fail if any of the parsers used inside of it fail. Otherwise, it will result in the value returned from the lambda.
+- `CoroutineExecutor executor` -> A lambda taking in a context, with a `.yield()` method. When you want to parse a value, use `.yield(parser)` to parse that parser, and get its result back. The context also has a `.reject()` method, which will exit out of the coroutine and fail the parser.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.recursive(ParserProducer producer)` -> `???`
+Used to create recursive parsers.
+- `ParserProducer producer` -> A lambda which returns a parser
 <details>
     <summary>Examples</summary>
 
