@@ -5,7 +5,12 @@ Gradian is a [Parser Combinator](https://en.wikipedia.org/wiki/Parser_combinator
 With parser combinator libraries, parsers are built up from smaller, simpler parsers. Parsers can be combined in a number of ways to produce more complex behavior. Gradian takes full advantage of this idea, providing a variety of "parser-combinators".
 
 ## Reference
-- [`.digit`]()
+- [`.digit`](#gradiandigit---string)
+- [`.digits`](#gradiandigits---string)
+- [`.letter`](#gradianletter---string)
+- [`.letters`](#gradianletters---string)
+- [`.whitespace`](#gradianwhitespe---string)
+- [`.optionalWhitespace`](#gradianoptionalwhitespace---string)
 
 ### `Gradian.digit` -> `String`
 A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.
@@ -40,7 +45,7 @@ A parser which parses 1 or more letters. This parser results in a string. This p
 </details>
 
 ### `Gradian.whitespace` -> `String`
-This parser matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use `Gradian.optionalWhitespace` instead. The parser will match whitespace characters until the next character is not a whitespace character.
+This parser matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use [`Gradian.optionalWhitespace`](#gradiandigit---string) instead. The parser will match whitespace characters until the next character is not a whitespace character.
 <details>
     <summary>Examples</summary>
 
