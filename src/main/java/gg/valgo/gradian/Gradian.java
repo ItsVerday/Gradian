@@ -3,6 +3,9 @@ package gg.valgo.gradian;
 import gg.valgo.gradian.parsers.*;
 import gg.valgo.gradian.util.Coroutine;
 
+/**
+ * The main Gradian class, with static variables/methods to create and combine parsers.
+ */
 public class Gradian {
     /**
      * A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.

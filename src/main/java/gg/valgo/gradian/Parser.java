@@ -1,5 +1,7 @@
 package gg.valgo.gradian;
 
+import java.util.*;
+
 public abstract class Parser<ResultType> {
     private String parserName;
     public abstract ParserState<ResultType> parse(ParserState<?> state);
@@ -111,6 +113,14 @@ public abstract class Parser<ResultType> {
                 return self.getExpectedValueName();
             }
         };
+    }
+
+    /**
+     * Maps a parser to result in a string.
+     * @return A parser which results in a string.
+     */
+    public Parser<String> asString() {
+        return map(Objects::toString);
     }
 
     public interface ResultMapper<OldResultType, NewResultType> {
