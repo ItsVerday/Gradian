@@ -7,10 +7,19 @@ public abstract class Parser<ResultType> {
     public abstract ParserState<ResultType> parse(ParserState<?> state);
     public abstract String getExpectedValueName();
 
+    /**
+     * Gets the name of the parser (for error messages).
+     * @return The name of the parser.
+     */
     public String getParserName() {
         return parserName;
     }
 
+    /**
+     * Sets the parser name. Many parsers override this with a fixed name, so this will not always work.
+     * @param parserName The new parser name.
+     * @return This parser, for method chaining.
+     */
     public Parser<ResultType> setParserName(String parserName) {
         this.parserName = parserName;
         return this;

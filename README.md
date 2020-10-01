@@ -30,7 +30,9 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.ignore(Parser value)`](#gradianignoreparser-value---null)
 - [`.sequence(Parser... parsers)`](#gradiansequenceparser-parsers---object--arraylistobject--string)
 - [`.between(Parser left, Parser right, Parser middle)`](#gradianbetweenparser-left-parser-right-parser-middle---result-type-of-middle)
-- [`.choice(Parser... parsers)`](#gradianchoiceparser-parsers---object)
+- [`.peek1`](#gradianpeek1---string)
+- [`.peek(int chars)`](#gradianpeekint-chars---string)
+- [`.choice(Parser... parsers)`](#gradianchoiceparser-parsers---)
 - [`.many(Parser parser)`](#gradianmanyparser-parser---array--arraylist-of-result-type-of-parser-or-string)
 - [`.atLeast(Parser parser, int minimumCount)`](#gradianatleastparser-parser-int-minimumcount---array--arraylist-of-result-type-of-parser-or-string)
 - [`.atLeastOne(Parser parser)`](#gradianatleastoneparser-parser---array--arraylist-of-result-type-of-parser-or-string)
@@ -204,7 +206,7 @@ A parser which parses a child parser between two other parsers. This parser will
     *No examples yet...*
 </details>
 
-### `Gradian.choice(Parser... parsers)` -> `Object`
+### `Gradian.choice(Parser... parsers)` -> `???`
 A parser which attempts to parse each "choice" it is given. The first parser that doesn't fail is the one that is chosen, and the result from that parser is used. If every choice fails, then this parser will fail.
 - `Parser... parsers` -> A list of choices, which will be attempted in that order
 <details>
@@ -212,6 +214,18 @@ A parser which attempts to parse each "choice" it is given. The first parser tha
 
     *No examples yet...*
 </details>
+
+### `Gradian.peek1` -> `String`
+A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next character. If the end of input has been reached, this parser will result in an empty string. This parser cannot fail.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.peek(int chars)` -> `String`
+A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next n chars, with n being the input to this method. If the input has less characters left than the amount of characters, the result will be truncated. This parser cannot fail.
+- `int chars` -> The amount of characters to peek.
 
 ### `Gradian.many(Parser parser)` -> `Array | ArrayList` of result type of `parser`, or `String`
 A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`.

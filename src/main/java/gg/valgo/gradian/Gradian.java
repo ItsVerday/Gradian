@@ -128,6 +128,22 @@ public class Gradian {
     }
 
     /**
+     * A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next character. If the end of input has been reached, this parser will result in an empty string. This parser cannot fail.
+     * This parser returns a string with a single "peeked" character, or an empty string.
+     */
+    public static final PeekParser peek1 = peek(1);
+
+    /**
+     * A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next n chars, with n being the input to this method. If the input has less characters left than the amount of characters, the result will be truncated. This parser cannot fail.
+     * This parser returns the "peeked" characters, a string.
+     * @param chars The amount of characters to peek.
+     * @return The string with the peeked characters.
+     */
+    public static PeekParser peek(int chars) {
+        return new PeekParser(chars);
+    }
+
+    /**
      * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called.  If you would like to join the resulting values, use `.join(String delimiter)`.
      * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
      * @param parser The parser to repeat.
