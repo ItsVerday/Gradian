@@ -28,7 +28,7 @@ public class CharacterParser extends Parser<Character> {
         char actualCharacter = substring.charAt(0);
 
         if (actualCharacter == character) {
-            return state.updateState(state.getIndex() + 1, character);
+            return state.updateState(state.addIndexFromStringLength(1), character);
         }
 
         return state.<Character>updateType().formatException(this, "character '" + actualCharacter + "'");

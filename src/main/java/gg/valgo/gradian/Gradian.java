@@ -11,37 +11,37 @@ public class Gradian {
      * A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.
      * This parser returns a string.
      */
-    public static final RegexParser digit = (RegexParser) new RegexParser("^[0-9]").setParserName("digit");
+    public static final Parser<String> digit = regex("^[0-9]").setParserName("digit");
 
     /**
      * A parser which matches 1 or more digits. This parser results in a string. This parser fails if the next character in the input is not a digit. Otherwise, it will match digits until the next character is not a digit.
      * This parser returns a string.
      */
-    public static final RegexParser digits = (RegexParser) new RegexParser("^[0-9]+").setParserName("digits");
+    public static final Parser<String> digits = regex("^[0-9]+").setParserName("digits");
 
     /**
      * A parser which matches a letter. This parser results in a string. This parser fails if the next character in the input is not a letter.
      * This parser returns a string.
      */
-    public static final RegexParser letter = (RegexParser) new RegexParser("^[A-Za-z]").setParserName("letter");
+    public static final Parser<String> letter = regex("^[A-Za-z]").setParserName("letter");
 
     /**
      * A parser which parses 1 or more letters. This parser results in a string. This parser fails if the next character in the input is not a letter. Otherwise, it will match letters until the next character is not a letter.
      * This parser returns a string.
      */
-    public static final RegexParser letters = (RegexParser) new RegexParser("^[A-Za-z]+").setParserName("letters");
+    public static final Parser<String> letters = regex("^[A-Za-z]+").setParserName("letters");
 
     /**
      * A parser which matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use `Gradian.optionalWhitespace` instead. The parser will match whitespace characters until the next character is not a whitespace character.
      * This parser returns a string.
      */
-    public static final RegexParser whitespace = (RegexParser) new RegexParser("^\\s+").setParserName("whitespace");
+    public static final Parser<String> whitespace = regex("^\\s+").setParserName("whitespace");
 
     /**
      * A parser which optionally matches any whitespace character. If there is no whitespace present, it returns an empty string. Otherwise, it will return a string with the whitespace. This parser will match all whitespace characters, up until a non-whitespace character.
      * This parser returns a string.
      */
-    public static final Parser<String> optionalWhitespace = new MaybeParser<>(whitespace).valueIfAbsent("").mapType();
+    public static final Parser<String> optionalWhitespace = maybe(whitespace).valueIfAbsent("").mapType();
 
     /**
      * A parser which matches any character. It results in a character, or a string if `.asString()` is called. This parser will only fail if the end of input has been reached.
@@ -73,6 +73,27 @@ public class Gradian {
      */
     public static CharacterParser character(char character) {
         return new CharacterParser(character);
+    }
+
+    /**
+     * A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
+     * This parser returns a string.
+     * @param pattern The regex pattern to match.
+     * @return The regex parser, with flags defaulting to 0
+     */
+    public static RegexParser regex(String pattern) {
+        return regex(pattern, 0);
+    }
+
+    /**
+     * A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
+     * This parser returns a string.
+     * @param pattern The regex pattern to match.
+     * @param flags The regex flags.
+     * @return The regex parser.
+     */
+    public static RegexParser regex(String pattern, int flags) {
+        return new RegexParser(pattern, flags);
     }
 
     /**

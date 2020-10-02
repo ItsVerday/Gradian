@@ -22,7 +22,7 @@ public class AnythingExceptParser extends Parser<Character> {
 
         ParserState<?> newState = parser.parse(state);
         if (newState.isException()) {
-            return state.<Character>updateType().updateState(state.getIndex() + 1, state.getSubstring().charAt(0));
+            return state.<Character>updateType().updateState(state.addIndexFromStringLength(1), state.getSubstring().charAt(0));
         }
 
         return state.<Character>updateType().formatException(this, parser.getExpectedValueName());

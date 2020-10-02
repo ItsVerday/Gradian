@@ -26,7 +26,7 @@ public class StringParser extends Parser<String> {
         }
 
         if (substring.startsWith(string)) {
-            return state.updateState(state.getIndex() + string.length(), string);
+            return state.updateState(state.addIndexFromStringLength(string.length()), string);
         }
 
         return state.<String>updateType().formatException(this, "string \"" + substring.substring(0, Math.min(substring.length(), string.length())) + "\"");

@@ -168,6 +168,16 @@ Returns a parser that matches a single character. Use `.asString()` if you want 
     *No examples yet...*
 </details>
 
+### `Gradian.regex(String pattern, int flags = 0)` -> `String`
+A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
+- `String pattern` -> The regex pattern to match.
+- `int flags = 0` -> The regex flags, defaulting to 0.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
 ### `Gradian.maybe(Parser value)` -> Result type of `value`
 Returns a parser which optionally matches another parser. If a match cannot be made, the parser has a result of null. If you wish to ignore the result if it is absent, use `.ignoreIfAbsent()`. If you wish to return a specific value if the result is absent, use `.valueIfAbsent(Object value)`. This parser cannot fail.
 - `Parser value` -> The parser to possibly match

@@ -1,14 +1,27 @@
 package gg.valgo.gradian;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 /**
  * A parser state, used to represent the input, current index, result, and whether there was an exception in parsing.
  * @param <ResultType> The result type of the ParserState.
  */
 public class ParserState<ResultType> {
     /**
-     * The input to the parser.
+     * The input to the parser, interpreted as a UTF-8 byte array.
      */
-    private final String input;
+    private final byte[] bytes;
+
+    /**
+     * Whether to update the truncated input byte array.
+     */
+    private boolean updateTruncatedBytesCache = true;
+
+    /**
+     * The cached truncated input byte array.
+     */
+    private byte[] truncatedBytesCache;
 
     /**
      * The index in the input.
@@ -31,11 +44,27 @@ public class ParserState<ResultType> {
     private boolean ignoreResult = false;
 
     /**
-     * Creates a new ParserState with a specified input.
+     * Creates a new ParserState with a specified input string.
      * @param input The input string.
      */
     public ParserState(String input) {
-        this.input = input;
+        bytes = input.getBytes(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Creates a new ParserState with a specified input byte array.
+     * @param bytes The input byte array.
+     */
+    public ParserState(byte[] bytes) {
+        this.bytes = bytes;
+    }
+
+    /**
+     * Gets the input bytes.
+     * @return The input bytes.
+     */
+    public byte[] getBytes() {
+        return bytes;
     }
 
     /**
@@ -43,7 +72,20 @@ public class ParserState<ResultType> {
      * @return The input string.
      */
     public String getInput() {
-        return input;
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Gets the truncated bytes of this state, based off of the current index.
+     * @return The truncated bytes.
+     */
+    public byte[] getTruncatedBytes() {
+        if (updateTruncatedBytesCache) {
+            truncatedBytesCache = Arrays.copyOfRange(bytes, index, bytes.length);
+            updateTruncatedBytesCache = false;
+        }
+
+        return truncatedBytesCache;
     }
 
     /**
@@ -51,7 +93,8 @@ public class ParserState<ResultType> {
      * @return The truncated input.
      */
     public String getSubstring() {
-        return input.substring(index);
+        byte[] truncated = getTruncatedBytes();
+        return new String(truncated, StandardCharsets.UTF_8);
     }
 
     /**
@@ -69,6 +112,8 @@ public class ParserState<ResultType> {
      */
     public ParserState<ResultType> setIndex(int index) {
         this.index = index;
+        updateTruncatedBytesCache = true;
+
         return this;
     }
 
@@ -105,7 +150,7 @@ public class ParserState<ResultType> {
      * @return This ParserState, for method chaining.
      */
     public <NewResultType> ParserState<NewResultType> setResult(NewResultType newResult) {
-        ParserState<NewResultType> newState = new ParserState<>(input);
+        ParserState<NewResultType> newState = new ParserState<>(bytes);
         newState.setIndex(index);
         newState.setException(exception);
         newState.result = newResult;
@@ -143,7 +188,17 @@ public class ParserState<ResultType> {
      * @return A copy of this ParserState.
      */
     public ParserState<ResultType> duplicate() {
-        return new ParserState<ResultType>(input).setIndex(index).setException(exception).setResult(result).setIgnoreResult(ignoreResult);
+        ParserState<ResultType> duplicated = new ParserState<ResultType>(bytes).setIndex(index).setException(exception).setResult(result).setIgnoreResult(ignoreResult);
+        duplicated.truncatedBytesCache = truncatedBytesCache;
+        duplicated.updateTruncatedBytesCache = updateTruncatedBytesCache;
+
+        return duplicated;
+    }
+
+    public int addIndexFromStringLength(int length) {
+        String substring = getSubstring();
+        String string = substring.substring(0, length);
+        return index + string.getBytes(StandardCharsets.UTF_8).length;
     }
 
     /**

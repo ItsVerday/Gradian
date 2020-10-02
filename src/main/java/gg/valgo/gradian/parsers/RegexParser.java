@@ -38,7 +38,7 @@ public class RegexParser extends Parser<String> {
         }
 
         String match = matcher.group();
-        return state.updateState(state.getIndex() + match.length(), match);
+        return state.updateState(state.addIndexFromStringLength(match.length()), match);
     }
 
     @Override

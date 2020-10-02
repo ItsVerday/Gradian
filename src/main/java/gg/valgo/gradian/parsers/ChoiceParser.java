@@ -39,7 +39,7 @@ public class ChoiceParser extends Parser<Object> {
     @Override
     public String getExpectedValueName() {
         String expectedValueName = "";
-        for (Parser parser : parsers) {
+        for (Parser<?> parser : parsers) {
             expectedValueName = expectedValueName.concat(parser.getExpectedValueName() + " or ");
         }
 

@@ -15,7 +15,7 @@ public class AnyCharacterParser extends Parser<Character> {
             return state.<Character>updateType().formatException(this, "end of input");
         }
 
-        return state.updateState(state.getIndex() + 1, substring.charAt(0));
+        return state.updateState(state.addIndexFromStringLength(1), substring.charAt(0));
     }
 
     public Parser<String> asString() {

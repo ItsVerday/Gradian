@@ -41,7 +41,6 @@ public class ManyParser<ResultType> extends Parser<ResultType[]> {
             return state.updateType();
         }
 
-        ParserState<?> originalState = state;
         ParserState<ResultType> currentState = state.updateType();
         ArrayList<ResultType> results = new ArrayList<>();
         int parseCount = 0;
@@ -62,7 +61,7 @@ public class ManyParser<ResultType> extends Parser<ResultType[]> {
         }
 
         if ((parseCount < minimumCount && minimumCount != -1) || (parseCount > maximumCount && maximumCount != -1)) {
-            return originalState.<ResultType[]>updateType().formatException(this, parseCount + " of " + parser.getExpectedValueName());
+            return state.<ResultType[]>updateType().formatException(this, parseCount + " of " + parser.getExpectedValueName());
         }
 
         return currentState.setException(null).updateType().updateState(currentState.getIndex(), (ResultType[]) results.toArray());
