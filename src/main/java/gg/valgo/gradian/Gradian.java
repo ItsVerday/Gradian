@@ -76,6 +76,33 @@ public class Gradian {
     }
 
     /**
+     * Returns a choice parser that matches one character from the specified string. This parser results in a character. This parser will fail if it cannot match one of the specified characters.
+     * This parser returns a character.
+     * @param chars The character string.
+     * @return The anyOfString parser.
+     */
+    public static Parser<Character> anyOfString(String chars) {
+        return choiceOfCharacters(chars.toCharArray()).setParserName("anyOfString");
+    }
+
+    /**
+     * Returns a choice parser that matches one of a list of characters. This parser results in a character. This parser will fail if it cannot match one of the specified characters.
+     * This parser returns a character.
+     * @param chars An array of characters to choose from.
+     * @return The choiceOfCharacters parser.
+     */
+    public static Parser<Character> choiceOfCharacters(char... chars) {
+        CharacterParser[] characterParsers = new CharacterParser[chars.length];
+
+        int index = 0;
+        for (char character : chars) {
+            characterParsers[index++] = character(character);
+        }
+
+        return choice(characterParsers).setParserName("choiceOfCharacters").mapType();
+    }
+
+    /**
      * A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
      * This parser returns a string.
      * @param pattern The regex pattern to match.
@@ -144,8 +171,8 @@ public class Gradian {
      * @param parsers A list of choices, which will be attempted in that order.
      * @return The choice parser.
      */
-    public static ChoiceParser choice(Parser<?>... parsers) {
-        return new ChoiceParser(parsers);
+    public static Parser<Object> choice(Parser<?>... parsers) {
+        return new ChoiceParser(parsers).setParserName("choice");
     }
 
     /**
@@ -158,10 +185,21 @@ public class Gradian {
      * A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next n chars, with n being the input to this method. If the input has less characters left than the amount of characters, the result will be truncated. This parser cannot fail.
      * This parser returns the "peeked" characters, a string.
      * @param chars The amount of characters to peek.
-     * @return The string with the peeked characters.
+     * @return The peek parser.
      */
     public static PeekParser peek(int chars) {
         return new PeekParser(chars);
+    }
+
+    /**
+     * A parser which attempts to parse its child parser, without consuming input. This parser will fail if its child parser fails.
+     * This parser results in the result type of its child parser.
+     * @param parser The parser to look ahead with.
+     * @param <ResultType> The result type of the child parser.
+     * @return The lookAhead parser.
+     */
+    public static <ResultType> LookAheadParser<ResultType> lookAhead(Parser<ResultType> parser) {
+        return new LookAheadParser<>(parser);
     }
 
     /**

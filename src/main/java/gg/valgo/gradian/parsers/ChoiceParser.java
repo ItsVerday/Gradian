@@ -32,11 +32,6 @@ public class ChoiceParser extends Parser<Object> {
     }
 
     @Override
-    public String getParserName() {
-        return "choice";
-    }
-
-    @Override
     public String getExpectedValueName() {
         String expectedValueName = "";
         for (Parser<?> parser : parsers) {

@@ -26,12 +26,16 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.endOfInput`](#gradianendofinput---null)
 - [`.string(String value)`](#gradianstringstring-value---string)
 - [`.character(char value)`](#gradiancharacterchar-value---char--string)
-- [`.maybe(Parser value)`](#gradianmaybeparser-value---result-type-of-value)
+- [`.anyOfString(String chars)`](#gradiananyofstringstring-chars---char)
+- [`.choiceOfCharacters(char... chars)`](#gradianchoiceofcharacterschar-chars---char)
+- [`.regex(String pattern, int flags = 0)`](#gradianregexstring-pattern-int-flags--0---string)
+- [`.maybe(Parser value)`](#gradianmaybeparser-parser---result-type-of-parser)
 - [`.ignore(Parser value)`](#gradianignoreparser-value---null)
 - [`.sequence(Parser... parsers)`](#gradiansequenceparser-parsers---object--arraylistobject--string)
 - [`.between(Parser left, Parser right, Parser middle)`](#gradianbetweenparser-left-parser-right-parser-middle---result-type-of-middle)
 - [`.peek1`](#gradianpeek1---string)
 - [`.peek(int chars)`](#gradianpeekint-chars---string)
+- [`.lookAhead(Parser parser)`]
 - [`.choice(Parser... parsers)`](#gradianchoiceparser-parsers---)
 - [`.many(Parser parser)`](#gradianmanyparser-parser---array--arraylist-of-result-type-of-parser-or-string)
 - [`.atLeast(Parser parser, int minimumCount)`](#gradianatleastparser-parser-int-minimumcount---array--arraylist-of-result-type-of-parser-or-string)
@@ -168,17 +172,35 @@ Returns a parser that matches a single character. Use `.asString()` if you want 
     *No examples yet...*
 </details>
 
-### `Gradian.regex(String pattern, int flags = 0)` -> `String`
-A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
-- `String pattern` -> The regex pattern to match.
-- `int flags = 0` -> The regex flags, defaulting to 0.
+### `Gradian.anyOfString(String chars)` -> `char`
+Returns a choice parser that matches one character from the specified string. This parser results in a character. This parser will fail if it cannot match one of the specified characters.
+- `String chars` -> The character string
 <details>
     <summary>Examples</summary>
 
     *No examples yet...*
 </details>
 
-### `Gradian.maybe(Parser value)` -> Result type of `value`
+### `Gradian.choiceOfCharacters(char... chars)` -> `char`
+Returns a choice parser that matches one of a list of characters. This parser results in a character. This parser will fail if it cannot match one of the specified characters.
+- `char... chars` -> An array of characters to choose from
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.regex(String pattern, int flags = 0)` -> `String`
+A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
+- `String pattern` -> The regex pattern to match
+- `int flags = 0` -> The regex flags, defaulting to 0
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.maybe(Parser parser)` -> Result type of `parser`
 Returns a parser which optionally matches another parser. If a match cannot be made, the parser has a result of null. If you wish to ignore the result if it is absent, use `.ignoreIfAbsent()`. If you wish to return a specific value if the result is absent, use `.valueIfAbsent(Object value)`. This parser cannot fail.
 - `Parser value` -> The parser to possibly match
 <details>
@@ -236,6 +258,20 @@ A parser which "peeks" ahead in the string, without consuming any input. This pa
 ### `Gradian.peek(int chars)` -> `String`
 A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next n chars, with n being the input to this method. If the input has less characters left than the amount of characters, the result will be truncated. This parser cannot fail.
 - `int chars` -> The amount of characters to peek.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.lookAhead(Parser parser)` -> Result type of `parser`
+A parser which attempts to parse its child parser, without consuming input. This parser will fail if its child parser fails.
+- `Parser parser` -> The parser to look ahead with
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
 
 ### `Gradian.many(Parser parser)` -> `Array | ArrayList` of result type of `parser`, or `String`
 A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`.
