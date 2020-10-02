@@ -35,7 +35,7 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.between(Parser left, Parser right, Parser middle)`](#gradianbetweenparser-left-parser-right-parser-middle---result-type-of-middle)
 - [`.peek1`](#gradianpeek1---string)
 - [`.peek(int chars)`](#gradianpeekint-chars---string)
-- [`.lookAhead(Parser parser)`]
+- [`.lookAhead(Parser parser)`](#gradianlookaheadparser-parser---result-type-of-parser)
 - [`.choice(Parser... parsers)`](#gradianchoiceparser-parsers---)
 - [`.many(Parser parser)`](#gradianmanyparser-parser---array--arraylist-of-result-type-of-parser-or-string)
 - [`.atLeast(Parser parser, int minimumCount)`](#gradianatleastparser-parser-int-minimumcount---array--arraylist-of-result-type-of-parser-or-string)
