@@ -57,51 +57,67 @@ This library is named Gradian because of the naming of the node package it is ba
 ### `parser.run(String | bytes[] input)` -> `ParserState`
 Runs a parser on a given string/byte array The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
 - `String | bytes[] input` -> The string to parse
-<details>
-    <summary>Examples</summary>
-
-    ```java
-        Test
-    ```
-</details>
+```java
+ParserState<String> state = Gradian.string("Hello world").run("Hello world");
+System.out.println(state); 
+/*
+ParserState {
+  isException = false
+  result = Hello world
+  input = Hello world
+  index = 11
+}
+*/
+```
 
 ### `parser.getResult(String | bytes[] input)` -> `???`
 Runs a parser on a given string/btye array and returns the result, or throws a ParserException if the parsing fails.
 - `String | bytes[] input` -> The string to parse
-<details>
-    <summary>Examples</summary>
-
-    *No examples yet...*
-</details>
+```java
+String result = Gradian.string("Parsers").getResult("Parsers are cool!");
+System.out.println(result); // "Parsers"
+```
 
 ### `parser.fork(String | byte[] input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)` -> `ParserState`
 Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
 - `String | byte[] input` -> The input to parse
 - `ErrorTransformer errorTransformer` -> The error transformer, which modifies the result if an error is encountered
 - `SuccessTransformer successTransformer` -> The success transformer, which modifies the result if no error is encountered
-<details>
-    <summary>Examples</summary>
+```java
+ParserState<String> state = Gradian.string("success").fork("success", (message, parserState) -> {
+    System.out.println("Error: " + message);
+    return parserState;
+}, (result, parserState) -> {
+    System.out.println("Success: " + result);
+    return parserState;
+}); // "Success: success"
 
-    *No examples yet...*
-</details>
+ParserState<String> otherState = Gradian.string("success").fork("invalid string", (message, parserState) -> {
+    System.out.println("Error: " + message);
+    return parserState;
+}, (result, parserState) -> {
+    System.out.println("Success: " + result);
+    return parserState;
+}); // "Error: Exception in string parser (position 0): Expected string "success" but got string "invalid" instead."
+```
 
 ### `parser.map(ResultMapper mapper)` -> `Parser`
 Maps the result of a parser to a new value. Useful for processing the result in the parser itself, instead of externally.
 - `ResultMapper mapper` -> A lambda which takes a value, the result of the parser, and returns a new value
-<details>
-    <summary>Examples</summary>
-
-    *No examples yet...*
-</details>
+```java
+Parser<Integer> digitParser = Gradian.digits.map(result -> Integer.parseInt(result));
+// digitParser now returns an int
+System.out.println(digitParser.getResult("123")); // 123
+```
 
 ### `parser.<NewResultType>mapType()` -> `Parser`
 A utility method, used to cast the result of a parser to a different type. In many situations, this method will be called without the type generic, if the type can be inferred.
 - `NewResultType` -> The type to cast the result to
-<details>
-    <summary>Examples</summary>
-
-    *No examples yet...*
-</details>
+```java
+Parser<Long> longParser = Gradian.digits.map(result -> Integer.parseInt(result)).mapType();
+// longParser gets an int and maps it to a long
+System.out.println(longParser.getResult("123456789")); // 123456789
+```
 
 ### `parser.mapState(StateMapper mapper)` -> `Parser`
 Maps a resulting parser state to a new parser state. Can be useful for more advanced parsers, where the parser index, or the exception needs to be modified.
