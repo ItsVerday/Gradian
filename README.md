@@ -9,11 +9,13 @@ This library is named Gradian because of the naming of the node package it is ba
 
 ## Reference
 ### Parser Methods
-- [`.run(String input)`](#parserrunstring-input---parserstate)
-- [`.getResult(String input)`](#parsergetresultstring-input---)
+- [`.run(String input)`](#parserrunstring--bytes-input---parserstate)
+- [`.getResult(String input)`](#parsergetresultstring--bytes-input---)
+- [`.fork(String | byte[] input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)`](#parserforkstring--byte-input-errortransformer-errortransformer-successtransformer-successtransformer---parserstate)
 - [`.map(ResultMapper mapper)`](#parsermapresultmapper-mapper---parser)
 - [`.<NewResultType>mapType()`](#parsernewresulttypemaptype---parser)
 - [`.mapState(StateMapper mapper)`](#parsermapstatestatemapper-mapper---parser)
+- [`.asString()`](#parserasstring---parser)
 
 ### Parsers
 - [`.digit`](#gradiandigit---string)
@@ -44,23 +46,37 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.manyBetween(Parser parser, int minimumCount, int maximumCount)`](#gradianmanybetweenparser-parser-int-minimumcount-int-maximumcount---array--arraylist-of-result-type-of-parser-or-string)
 - [`.exactly(Parser parser, int count)`](#gradianexactlyparser-parser-int-count---array--arraylist-of-result-type-of-parser-or-string)
 - [`.separatedBy(Parser separator, Parser values)`](#gradianseparatedbyparser-separator-parser-values---array--arraylist-of-result-type-of-values-or-string)
+- [`.everythingUntil(Parser parser)`](#gradianeverythinguntilparser-parser---string)
 - [`.anythingExcept(Parser parser)`](#gradiananythingexceptparser-parser---char)
 - [`.coroutine(CoroutineExecutor executor)`](#gradiancoroutinecoroutineexecutor-executor---)
+- [`.fail(String message)`](#gradianfailstring-message---null)
+- [`.succeedWith(Object result)`](#gradiansucceedwithobject-result---result)
 - [`.recursive(ParserProducer producer)`](#gradianrecursiveparserproducer-producer---)
 
 ## Parser Methods
-### `parser.run(String input)` -> `ParserState`
-Runs a parser on a given string. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
-- `String input` -> The string to parse
+### `parser.run(String | bytes[] input)` -> `ParserState`
+Runs a parser on a given string/byte array The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
+- `String | bytes[] input` -> The string to parse
 <details>
     <summary>Examples</summary>
 
     *No examples yet...*
 </details>
 
-### `parser.getResult(String input)` -> `???`
-Runs a parser on a given string and returns the result, or throws a ParserException if the parsing fails.
-- `String input` -> The string to parse
+### `parser.getResult(String | bytes[] input)` -> `???`
+Runs a parser on a given string/btye array and returns the result, or throws a ParserException if the parsing fails.
+- `String | bytes[] input` -> The string to parse
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `parser.fork(String | byte[] input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)` -> `ParserState`
+Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
+- `String | byte[] input` -> The input to parse
+- `ErrorTransformer errorTransformer` -> The error transformer, which modifies the result if an error is encountered
+- `SuccessTransformer successTransformer` -> The success transformer, which modifies the result if no error is encountered
 <details>
     <summary>Examples</summary>
 
@@ -88,6 +104,19 @@ A utility method, used to cast the result of a parser to a different type. In ma
 ### `parser.mapState(StateMapper mapper)` -> `Parser`
 Maps a resulting parser state to a new parser state. Can be useful for more advanced parsers, where the parser index, or the exception needs to be modified.
 - `StateMapper mapper` -> A lambda which takes a parser state, the resulting state of the parser, and returns a new parser state
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `parser.asString()` -> `Parser`
+Maps a parser to result in a string.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
 
 ## Parsers
 ### `Gradian.digit` -> `String`
@@ -342,6 +371,15 @@ A parser which parses values, separated by a separator. This parser will fail if
     *No examples yet...*
 </details>
 
+### `Gradian.everythingUntil(Parser parser)` -> `String`
+A parser which matches everything up until the specified parser. If this parser reaches the end of input, it will fail. Otherwise, the result is everything matched up until the specified parser.
+- `Parser parser` -> The parser to match everything up until
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
 ### `Gradian.anythingExcept(Parser parser)` -> `char`
 A parser which matches anything except the parser passed into it. If the child parser passes, this parser will fail. Otherwise, the result is the current character in the string.
 - `Parser parser` -> The parser to not match
@@ -354,6 +392,24 @@ A parser which matches anything except the parser passed into it. If the child p
 ### `Gradian.coroutine(CoroutineExecutor executor)` -> `???`
 Creates a coroutine parser, allowing you to run custom logic in a parser. This is an advanced parser. It will fail if any of the parsers used inside of it fail. Otherwise, it will result in the value returned from the lambda.
 - `CoroutineExecutor executor` -> A lambda taking in a context, with a `.yield()` method. When you want to parse a value, use `.yield(parser)` to parse that parser, and get its result back. The context also has a `.reject()` method, which will exit out of the coroutine and fail the parser.
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.fail(String message)` -> `null`
+A parser which always fails with the specified message. Useful for failing a coroutine or other complex logic with a custom message.
+- `String message` -> The message to fail with
+<details>
+    <summary>Examples</summary>
+
+    *No examples yet...*
+</details>
+
+### `Gradian.succeedWith(Object result)` -> `result`
+A parser which always succeeds with the specified result.
+- `Object result` -> The result to succeed with
 <details>
     <summary>Examples</summary>
 

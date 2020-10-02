@@ -31,7 +31,16 @@ public abstract class Parser<ResultType> {
      * @return A `ParserState` with information about the result, and whether the string could be parsed.
      */
     public ParserState<ResultType> run(String input) {
-        return parse(new ParserState<ResultType>(input));
+        return parse(new ParserState<>(input));
+    }
+
+    /**
+     * Runs a parser on a given byte array. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
+     * @param bytes The byte array to parse.
+     * @return A `ParserState` with information about the result, and whether the byte array could be parsed.
+     */
+    public ParserState<ResultType> run(byte[] bytes) {
+        return parse(new ParserState<>(bytes));
     }
 
     /**
@@ -47,6 +56,55 @@ public abstract class Parser<ResultType> {
         }
 
         return state.getResult();
+    }
+
+    /**
+     * Runs a parser on a given byte array and returns the result, or throws a ParserException if the parsing fails.
+     * @param bytes The byte array to parse.
+     * @return The result of parsing.
+     * @throws ParserException Thrown if the parser fails.
+     */
+    public ResultType getResult(byte[] bytes) throws ParserException {
+        ParserState<ResultType> state = run(bytes);
+        if (state.isException()) {
+            throw state.getException();
+        }
+
+        return state.getResult();
+    }
+
+    /**
+     * Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
+     * @param input The String to parse.
+     * @param errorTransformer The error transformer, which modifies the result if an error is encountered.
+     * @param successTransformer The success transformer, which modifies the result if no error is encountered.
+     * @return The modified parser state.
+     */
+    public ParserState<ResultType> fork(String input, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
+        ParserState<ResultType> state = run(input);
+
+        if (state.isException()) {
+            return errorTransformer.transform(state.getException().getMessage(), state);
+        }
+
+        return successTransformer.transform(state.getResult(), state);
+    }
+
+    /**
+     * Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
+     * @param bytes The byte array to parse.
+     * @param errorTransformer The error transformer, which modifies the result if an error is encountered.
+     * @param successTransformer The success transformer, which modifies the result if no error is encountered.
+     * @return The modified parser state.
+     */
+    public ParserState<ResultType> fork(byte[] bytes, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
+        ParserState<ResultType> state = run(bytes);
+
+        if (state.isException()) {
+            return errorTransformer.transform(state.getException().getMessage(), state);
+        }
+
+        return successTransformer.transform(state.getResult(), state);
     }
 
     /**
@@ -134,5 +192,13 @@ public abstract class Parser<ResultType> {
 
     public interface ResultMapper<OldResultType, NewResultType> {
         NewResultType map(OldResultType object);
+    }
+
+    public interface SuccessTransformer<ResultType> {
+        ParserState<ResultType> transform(ResultType object, ParserState<ResultType> state);
+    }
+
+    public interface ErrorTransformer<ResultType> {
+        ParserState<ResultType> transform(String message, ParserState<ResultType> state);
     }
 }

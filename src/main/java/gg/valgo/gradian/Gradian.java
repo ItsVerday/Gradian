@@ -279,6 +279,16 @@ public class Gradian {
     }
 
     /**
+     * A parser which matches everything up until the specified parser. If this parser reaches the end of input, it will fail. Otherwise, the result is everything matched up until the specified parser.
+     * This parser returns a string.
+     * @param parser The parser to match everything up until.
+     * @return The everythingUntil parser.
+     */
+    public static EverythingUntilParser everythingUntil(Parser<?> parser) {
+        return new EverythingUntilParser(parser);
+    }
+
+    /**
      * A parser which matches anything except the parser passed into it. If the child parser passes, this parser will fail. Otherwise, the result is the current character in the string.
      * This parser returns a character.
      * @param parser The parser to not match.
@@ -295,6 +305,26 @@ public class Gradian {
      */
     public static <ResultType> CoroutineParser<ResultType> coroutine(Coroutine.CoroutineExecutor<ResultType, Parser<?>, Object> executor) {
         return new CoroutineParser<>(executor);
+    }
+
+    /**
+     * A parser which always fails with the specified message. Useful for failing a coroutine or other complex logic with a custom message.
+     * This parser always fails, meaning it never has a result.
+     * @param message The message to fail with.
+     * @return The fail parser.
+     */
+    public static FailParser fail(String message) {
+        return new FailParser(message);
+    }
+
+    /**
+     * A parser which always succeeds with the specified result.
+     * @param result The result to succeed with.
+     * @param <ResultType> The type of the result.
+     * @return The succeedWith parser.
+     */
+    public static <ResultType> SucceedWithParser<ResultType> succeedWith(ResultType result) {
+        return new SucceedWithParser<>(result);
     }
 
     /**
