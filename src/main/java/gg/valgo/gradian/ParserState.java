@@ -240,6 +240,28 @@ public class ParserState<ResultType> {
         return withException("Exception in " + parser.getParserName() + " parser (position " + index + "): Expected " + parser.getExpectedValueName() + " but got " + actualValue + " instead.");
     }
 
+    /**
+     * Returns a string representation of this parser state.
+     * @return The representation of this parser state.
+     */
+    @Override
+    public String toString() {
+        return  "ParserState {\n" +
+                "  isException = " + isException() + "\n" +
+                (isException() ? ("  exception = " + getException().getMessage() + "\n") : "") +
+                (!isException() ? ("  result = " + getResult() + "\n") : "") +
+                "  input = " + getInput() + "\n" +
+                "  index = " + getIndex() + "\n" +
+                "}";
+    }
+
+    /**
+     * Runs System.out.println() on this parser state, logging it to the console. Useful for debugging.
+     */
+    public void debug() {
+        System.out.println(this);
+    }
+
     public interface StateMapper<OldResultType, NewResultType> {
         ParserState<NewResultType> map(ParserState<OldResultType> state);
     }

@@ -60,7 +60,9 @@ Runs a parser on a given string/byte array The returned value is a `ParserState`
 <details>
     <summary>Examples</summary>
 
-    *No examples yet...*
+    ```java
+        Test
+    ```
 </details>
 
 ### `parser.getResult(String | bytes[] input)` -> `???`
