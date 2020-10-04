@@ -1,6 +1,8 @@
 package gg.valgo.gradian;
 
 import gg.valgo.gradian.parsers.*;
+import gg.valgo.gradian.parsers.binary.BinaryParser;
+import gg.valgo.gradian.parsers.binary.ExactBinaryParser;
 import gg.valgo.gradian.util.Coroutine;
 
 /**
@@ -360,6 +362,174 @@ public class Gradian {
                 return "[recursive parser...]";
             }
         };
+    }
+
+    /**
+     * A namespace for binary parsers in Gradian.
+     */
+    public static class Binary {
+        /**
+         * Parses an unsigned 1-byte binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser u8 = binary(1, false, false);
+
+        /**
+         * Parses a signed 1-byte binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser s8 = binary(1, true, false);
+
+        /**
+         * Parses an unsigned 2-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser u16BE = binary(2, false, false);
+
+        /**
+         * Parses an unsigned 2-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser u16LE = binary(2, false, true);
+
+        /**
+         * Parses a signed 2-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser s16BE = binary(2, true, false);
+
+        /**
+         * Parses a signed 2-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser s16LE = binary(2, true, true);
+
+        /**
+         * Parses an unsigned 4-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser u32BE = binary(4, false, false);
+
+        /**
+         * Parses an unsigned 4-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser u32LE = binary(4, false, true);
+
+        /**
+         * Parses a signed 4-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser s32BE = binary(4, true, false);
+
+        /**
+         * Parses a signed 4-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         */
+        public static final BinaryParser s32LE = binary(4, true, true);
+
+        /**
+         * Parses a binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+         * @param bytes The amount of bytes to parse.
+         * @param signed Whether the result should be signed or not.
+         * @param littleEndian Whether the result should be little-endian or not.
+         * @return The binary parser.
+         */
+        public static BinaryParser binary(int bytes, boolean signed, boolean littleEndian) {
+            return new BinaryParser(bytes, signed, littleEndian);
+        }
+
+        /**
+         * Parses an exact unsigned 1-byte binary value. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactU8 parser.
+         */
+        public static ExactBinaryParser exactU8(long value) {
+            return exact(1, false, false, value);
+        }
+
+        /**
+         * Parses an exact signed 1-byte binary value. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactS8 parser.
+         */
+        public static ExactBinaryParser exactS8(long value) {
+            return exact(1, true, false, value);
+        }
+
+        /**
+         * Parses an exact unsigned 2-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactU16BE parser.
+         */
+        public static ExactBinaryParser exactU16BE(long value) {
+            return exact(2, false, false, value);
+        }
+
+        /**
+         * Parses an exact unsigned 2-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactU16LE parser.
+         */
+        public static ExactBinaryParser exactU16LE(long value) {
+            return exact(2, false, true, value);
+        }
+
+        /**
+         * Parses an exact signed 2-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactS16BE parser.
+         */
+        public static ExactBinaryParser exactS16BE(long value) {
+            return exact(2, true, false, value);
+        }
+
+        /**
+         * Parses an exact signed 2-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactS16LE parser.
+         */
+        public static ExactBinaryParser exactS16LE(long value) {
+            return exact(2, true, true, value);
+        }
+
+        /**
+         * Parses an exact unsigned 4-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactU32BE parser.
+         */
+        public static ExactBinaryParser exactU32BE(long value) {
+            return exact(4, false, false, value);
+        }
+
+        /**
+         * Parses an exact unsigned 4-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactU32LE parser.
+         */
+        public static ExactBinaryParser exactU32LE(long value) {
+            return exact(4, false, true, value);
+        }
+
+        /**
+         * Parses an exact signed 4-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactS32BE parser.
+         */
+        public static ExactBinaryParser exactS32BE(long value) {
+            return exact(4, true, false, value);
+        }
+
+        /**
+         * Parses an exact signed 4-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param value The expected value.
+         * @return The exactS32LE parser.
+         */
+        public static ExactBinaryParser exactS32LE(long value) {
+            return exact(4, true, true, value);
+        }
+
+        /**
+         * Parses an exact binary value. This parser results in a long. This parser will fail if it cannot parse the correct value.
+         * @param bytes The amount of bytes to parse.
+         * @param signed Whether the result should be signed or not.
+         * @param littleEndian Whether the result should be little-endian or not.
+         * @param value The expected value.
+         * @return The exactU32BE parser.
+         */
+        public static ExactBinaryParser exact(int bytes, boolean signed, boolean littleEndian, long value) {
+            return new ExactBinaryParser(bytes, signed, littleEndian, value);
+        }
     }
 
     public interface ParserProducer<ResultType> {

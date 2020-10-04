@@ -138,7 +138,7 @@ public class ExpressionEvaluator {
     }
 
     public static void main(String[] args) throws ParserException {
-        String exp = "1 + 2 * 3 / 4 - 5 % 6";
+        String exp = "1+2*(3+4*(5+6*(7+8)))";
         System.out.println(evaluate(exp));
     }
 

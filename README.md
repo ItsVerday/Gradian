@@ -53,6 +53,30 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.succeedWith(Object result)`](#gradiansucceedwithobject-result---result)
 - [`.recursive(ParserProducer producer)`](#gradianrecursiveparserproducer-producer---)
 
+### Binary Parsers
+- [`.u8`](#gradianbinaryu8---long--int)
+- [`.s8`](#gradianbinarys8---long--int)
+- [`.u16BE`](#gradianbinaryu16be---long--int)
+- [`.u16LE`](#gradianbinaryu16le---long--int)
+- [`.s16BE`](#gradianbinarys16be---long--int)
+- [`.s16LE`](#gradianbinarys16le---long--int)
+- [`.u32BE`](#gradianbinaryu32be---long--int)
+- [`.u32LE`](#gradianbinaryu32le---long--int)
+- [`.s32BE`](#gradianbinarys32be---long--int)
+- [`.s32LE`](#gradianbinarys32le---long--int)
+- [`.binary(int bytes, boolean signed, boolean littleEndian)`](#gradianbinarybinaryint-bytes-boolean-signed-boolean-littleendian---long--int)
+- [`.exactU8(long value)`](#gradianbinaryexactu8long-value---long--int)
+- [`.exactS8(long value)`](#gradianbinaryexacts8long-value---long--int)
+- [`.exactU16BE(long value)`](#gradianbinaryexactu16belong-value---long--int)
+- [`.exactU16LE(long value)`](#gradianbinaryexactu16lelong-value---long--int)
+- [`.exactS16BE(long value)`](#gradianbinaryexacts16belong-value---long--int)
+- [`.exactS16LE(long value)`](#gradianbinaryexacts16lelong-value---long--int)
+- [`.exactU32BE(long value)`](#gradianbinaryexactu32belong-value---long--int)
+- [`.exactU32LE(long value)`](#gradianbinaryexactu32lelong-value---long--int)
+- [`.exactS32BE(long value)`](#gradianbinaryexacts32belong-value---long--int)
+- [`.exactS32LE(long value)`](#gradianbinaryexacts32lelong-value---long--int)
+- [`.exact(int bytes, boolean signed, boolean littleEndian, long value)`](#gradianbinaryexactint-bytes-boolean-signed-boolean-littleendian-long-value---long--int)
+
 ## Parser Methods
 ### `parser.run(String | bytes[] input)` -> `ParserState`
 Runs a parser on a given string/byte array The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
@@ -442,3 +466,87 @@ Used to create recursive parsers.
 
     *No examples yet...*
 </details>
+
+## Binary Parsers
+### `Gradian.Binary.u8` -> `long | int`
+Parses an unsigned 1-byte binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.s8` -> `long | int`
+Parses a signed 1-byte binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.u16BE` -> `long | int`
+Parses an unsigned 2-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.u16LE` -> `long | int`
+Parses an unsigned 2-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.s16BE` -> `long | int`
+Parses a signed 2-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.s16LE` -> `long | int`
+Parses a signed 2-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.u32BE` -> `long | int`
+Parses an unsigned 4-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.u32LE` -> `long | int`
+Parses an unsigned 4-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.s32BE` -> `long | int`
+Parses a signed 4-byte binary value, big-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.s32LE` -> `long | int`
+Parses a signed 4-byte binary value, little-endian. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+
+### `Gradian.Binary.binary(int bytes, boolean signed, boolean littleEndian)` -> `long | int`
+Parses a binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
+- `int bytes` -> The amount of bytes to parse
+- `boolean signed` -> Whether the result should be signed or not
+- `boolean littleEndian` -> Whether the result should be little-endian or not
+
+### `Gradian.Binary.exactU8(long value)` -> `long | int`
+Parses an exact unsigned 1-byte binary value. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactS8(long value)` -> `long | int`
+Parses an exact signed 1-byte binary value. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactU16BE(long value)` -> `long | int`
+Parses an exact unsigned 2-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactU16LE(long value)` -> `long | int`
+Parses an exact unsigned 2-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactS16BE(long value)` -> `long | int`
+Parses an exact signed 2-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactS16LE(long value)` -> `long | int`
+Parses an exact signed 2-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactU32BE(long value)` -> `long | int`
+Parses an exact unsigned 4-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactU32LE(long value)` -> `long | int`
+Parses an exact unsigned 4-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactS32BE(long value)` -> `long | int`
+Parses an exact signed 4-byte binary value, big-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exactS32LE(long value)` -> `long | int`
+Parses an exact signed 4-byte binary value, little-endian. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `long value` -> The expected value
+
+### `Gradian.Binary.exact(int bytes, boolean signed, boolean littleEndian, long value)` -> `long | int`
+Parses an exact binary value. This parser results in a long. This parser will fail if it cannot parse the correct value.
+- `int bytes` -> The amount of bytes to parse
+- `boolean signed` -> Whether the result should be signed or not
+- `boolean littleEndian` -> Whether the result should be little-endian or not
+- `long value` -> The expected value
