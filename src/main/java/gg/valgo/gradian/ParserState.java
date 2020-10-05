@@ -5,9 +5,7 @@ import gg.valgo.gradian.input.StringInputList;
 import gg.valgo.gradian.input.Token;
 import gg.valgo.gradian.input.TokenInputList;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * A parser state, used to represent the input, current index, result, and whether there was an exception in parsing.
@@ -50,6 +48,10 @@ public class ParserState<ResultType> {
         this.input = new BytesInputList(bytes);
     }
 
+    /**
+     * Creates a new ParserState with a specified input token list.
+     * @param tokens The input token list.
+     */
     public ParserState(ArrayList<Token> tokens) {
         this.input = new TokenInputList(tokens);
     }
@@ -209,6 +211,11 @@ public class ParserState<ResultType> {
         return withException("Exception in " + parser.getParserName() + " parser (position " + getIndex() + "): Expected " + parser.getExpectedValueName() + " but got " + actualValue + " instead.");
     }
 
+    /**
+     * Updates this parser state to fail with a "bad input type" error message.
+     * @param parser The parser which failed.
+     * @return This parser state, for method chaining.
+     */
     public ParserState<ResultType> badInputType(Parser<?> parser) {
         return withException("Exception in " + parser.getParserName() + ": Bad input type!");
     }

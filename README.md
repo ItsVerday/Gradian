@@ -9,9 +9,9 @@ This library is named Gradian because of the naming of the node package it is ba
 
 ## Reference
 ### Parser Methods
-- [`.run(String input)`](#parserrunstring--bytes--arraylisttoken-input---parserstate)
-- [`.getResult(String input)`](#parsergetresultstring--bytes--arraylisttoken-input---)
-- [`.fork(String | byte[] input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)`](#parserforkstring--byte--arraylisttoken-input-errortransformer-errortransformer-successtransformer-successtransformer---parserstate)
+- [`.run(String | byte[] | ArrayList<Token> input)`](#parserrunstring--byte--arraylisttoken-input---parserstate)
+- [`.getResult(String | byte[] | ArrayList<Token> input)`](#parsergetresultstring--byte--arraylisttoken-input---)
+- [`.fork(String | byte[] | ArrayList<Token> input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)`](#parserforkstring--byte--arraylisttoken-input-errortransformer-errortransformer-successtransformer-successtransformer---parserstate)
 - [`.map(ResultMapper mapper)`](#parsermapresultmapper-mapper---parser)
 - [`.<NewResultType>mapType()`](#parsernewresulttypemaptype---parser)
 - [`.mapState(StateMapper mapper)`](#parsermapstatestatemapper-mapper---parser)
@@ -78,9 +78,9 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.recursive(ParserProducer producer)`](#gradianrecursiveparserproducer-producer---)
 
 ## Parser Methods
-### `parser.run(String | bytes[] | ArrayList<Token> input)` -> `ParserState`
+### `parser.run(String | byte[] | ArrayList<Token> input)` -> `ParserState`
 Runs a parser on a given string/byte array The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
-- `String | bytes[] input` -> The string to parse
+- `String | byte[] | ArrayList<Token> input` -> The string to parse
 ```java
 ParserState<String> state = Gradian.string("Hello world").run("Hello world");
 System.out.println(state); 
@@ -94,17 +94,17 @@ ParserState {
 */
 ```
 
-### `parser.getResult(String | bytes[] | ArrayList<Token> input)` -> `???`
+### `parser.getResult(String | byte[] | ArrayList<Token> input)` -> `???`
 Runs a parser on a given string/btye array and returns the result, or throws a ParserException if the parsing fails.
-- `String | bytes[] input` -> The string to parse
+- `String | byte[] | ArrayList<Token> input` -> The string to parse
 ```java
 String result = Gradian.string("Parsers").getResult("Parsers are cool!");
 System.out.println(result); // "Parsers"
 ```
 
-### `parser.fork(String | byte[ | ArrayList<Token> input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)` -> `ParserState`
+### `parser.fork(String | byte[] | ArrayList<Token> input, ErrorTransformer errorTransformer, SuccessTransformer successTransformer)` -> `ParserState`
 Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
-- `String | byte[] input` -> The input to parse
+- `String | byte[] | ArrayList<Token> input` -> The input to parse
 - `ErrorTransformer errorTransformer` -> The error transformer, which modifies the result if an error is encountered
 - `SuccessTransformer successTransformer` -> The success transformer, which modifies the result if no error is encountered
 ```java
