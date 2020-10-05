@@ -2,6 +2,9 @@ package gg.valgo.gradian.parsers.binary;
 
 import gg.valgo.gradian.Parser;
 import gg.valgo.gradian.ParserState;
+import gg.valgo.gradian.input.BytesInputList;
+
+import java.util.List;
 
 public class ExactBinaryParser extends Parser<Long> {
     private int bytes;
@@ -34,20 +37,26 @@ public class ExactBinaryParser extends Parser<Long> {
 
     @Override
     public ParserState<Long> parse(ParserState<?> state) {
+        if (!(state.getInput() instanceof BytesInputList)) {
+            return state.badInputType(this).updateType();
+        }
+
+        BytesInputList input = (BytesInputList) state.getInput();
+
         if (state.isException()) {
             return state.updateType();
         }
 
-        byte[] truncatedBytes = state.getTruncatedBytes();
-        if (truncatedBytes.length < bytes) {
-            return state.formatException(this, truncatedBytes.length + " binary bytes").updateType();
+        List<Byte> truncatedBytes = input.getTruncated();
+        if (truncatedBytes.size() < bytes) {
+            return state.formatException(this, truncatedBytes.size() + " binary bytes").updateType();
         }
 
         long value = 0;
 
         for (int index = 0; index < bytes; index++) {
             value *= 0x100;
-            byte b = truncatedBytes[littleEndian ? (bytes - index - 1) : index];
+            byte b = truncatedBytes.get(littleEndian ? (bytes - index - 1) : index);
             value += b < 0 ? b + 0x100 : b;
         }
 

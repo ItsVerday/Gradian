@@ -39,8 +39,7 @@ public class CoroutineParser<ResultType> extends Parser<ResultType> {
         }
 
         if (!result.isSuccess()) {
-            String substring = state.getSubstring();
-            return state.formatException(this, "string \"" + substring.substring(0, Math.min(substring.length(), 10)) + "\"").updateType();
+            return state.formatException(this, "value " + state.getInput().getCurrent().toString()).updateType();
         }
 
         return context.getCurrentState().updateState(context.getCurrentState().getIndex(), result.getValue());

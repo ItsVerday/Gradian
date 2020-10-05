@@ -24,20 +24,18 @@ public class EverythingUntilParser extends Parser<String> {
         String string = "";
 
         while (true) {
-            String substring = currentState.getSubstring();
-
             ParserState<?> newState = parser.parse(state);
 
             if (!newState.isException()) {
                 break;
             }
 
-            if (substring.length() == 0) {
+            if (state.getInput().isEndOfInput()) {
                 return state.formatException(this, "... end of input").updateType();
             }
 
-            string = string.concat(substring.substring(0, 0));
-            currentState = currentState.updateState(currentState.addIndexFromStringLength(1), currentState.getResult());
+            string = string.concat(currentState.getResult().toString());
+            currentState = currentState.updateState(currentState.getIndex() + 1, currentState.getResult());
         }
 
         return state.updateState(currentState.getIndex(), string);

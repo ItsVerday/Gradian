@@ -1,5 +1,7 @@
 package gg.valgo.gradian;
 
+import gg.valgo.gradian.input.Token;
+
 import java.util.*;
 
 public abstract class Parser<ResultType> {
@@ -44,6 +46,15 @@ public abstract class Parser<ResultType> {
     }
 
     /**
+     * Runs a parser on a given token list. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
+     * @param tokens The token list to parse.
+     * @return A `ParserState` with information about the result, and whether the byte array could be parsed.
+     */
+    public ParserState<ResultType> run(ArrayList<Token> tokens) {
+        return parse(new ParserState<>(tokens));
+    }
+
+    /**
      * Runs a parser on a given string and returns the result, or throws a ParserException if the parsing fails.
      * @param input The string to parse.
      * @return The result of parsing.
@@ -66,6 +77,21 @@ public abstract class Parser<ResultType> {
      */
     public ResultType getResult(byte[] bytes) throws ParserException {
         ParserState<ResultType> state = run(bytes);
+        if (state.isException()) {
+            throw state.getException();
+        }
+
+        return state.getResult();
+    }
+
+    /**
+     * Runs a parser on a given token list and returns the result, or throws a ParserException if the parsing fails.
+     * @param tokens The token list to parse.
+     * @return The result of parsing.
+     * @throws ParserException Thrown if the parser fails.
+     */
+    public ResultType getResult(ArrayList<Token> tokens) throws ParserException {
+        ParserState<ResultType> state = run(tokens);
         if (state.isException()) {
             throw state.getException();
         }
@@ -99,6 +125,23 @@ public abstract class Parser<ResultType> {
      */
     public ParserState<ResultType> fork(byte[] bytes, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
         ParserState<ResultType> state = run(bytes);
+
+        if (state.isException()) {
+            return errorTransformer.transform(state.getException().getMessage(), state);
+        }
+
+        return successTransformer.transform(state.getResult(), state);
+    }
+
+    /**
+     * Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
+     * @param tokens The token list to parse.
+     * @param errorTransformer The error transformer, which modifies the result if an error is encountered.
+     * @param successTransformer The success transformer, which modifies the result if no error is encountered.
+     * @return The modified parser state.
+     */
+    public ParserState<ResultType> fork(ArrayList<Token> tokens, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
+        ParserState<ResultType> state = run(tokens);
 
         if (state.isException()) {
             return errorTransformer.transform(state.getException().getMessage(), state);

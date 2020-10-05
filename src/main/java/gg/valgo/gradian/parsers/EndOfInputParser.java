@@ -10,12 +10,11 @@ public class EndOfInputParser extends Parser<Object> {
             return state.updateType();
         }
 
-        if (state.getIndex() == state.getInput().length()) {
+        if (state.getInput().isEndOfInput()) {
             return state.updateState(state.getIndex(), null);
         }
 
-        String substring = state.getSubstring();
-        return state.formatException(this, "string \"" + substring.substring(0, Math.min(substring.length(), 10)) + "\"").updateType();
+        return state.formatException(this, "more input").updateType();
     }
 
     @Override

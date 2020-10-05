@@ -1,6 +1,12 @@
 package gg.valgo.gradian;
 
+import gg.valgo.gradian.input.BytesInputList;
+import gg.valgo.gradian.input.StringInputList;
+import gg.valgo.gradian.input.Token;
+import gg.valgo.gradian.input.TokenInputList;
+
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -8,26 +14,6 @@ import java.util.Arrays;
  * @param <ResultType> The result type of the ParserState.
  */
 public class ParserState<ResultType> {
-    /**
-     * The input to the parser, interpreted as a UTF-8 byte array.
-     */
-    private final byte[] bytes;
-
-    /**
-     * Whether to update the truncated input byte array.
-     */
-    private boolean updateTruncatedBytesCache = true;
-
-    /**
-     * The cached truncated input byte array.
-     */
-    private byte[] truncatedBytesCache;
-
-    /**
-     * The index in the input.
-     */
-    private int index = 0;
-
     /**
      * The exception in parsing, if it exists. If there was no exception, this will be null.
      */
@@ -44,11 +30,16 @@ public class ParserState<ResultType> {
     private boolean ignoreResult = false;
 
     /**
+     * The input to the parser.
+     */
+    private ParserInputList<?> input;
+
+    /**
      * Creates a new ParserState with a specified input string.
      * @param input The input string.
      */
     public ParserState(String input) {
-        bytes = input.getBytes(StandardCharsets.UTF_8);
+        this.input = new StringInputList(input);
     }
 
     /**
@@ -56,45 +47,35 @@ public class ParserState<ResultType> {
      * @param bytes The input byte array.
      */
     public ParserState(byte[] bytes) {
-        this.bytes = bytes;
+        this.input = new BytesInputList(bytes);
+    }
+
+    public ParserState(ArrayList<Token> tokens) {
+        this.input = new TokenInputList(tokens);
     }
 
     /**
-     * Gets the input bytes.
-     * @return The input bytes.
+     * Creates a new ParserState from an input list.
+     * @param input The input list.
      */
-    public byte[] getBytes() {
-        return bytes;
+    public ParserState(ParserInputList<?> input) {
+        this.input = input;
     }
 
     /**
-     * Gets the input string.
-     * @return The input string.
+     * Gets the input to the parser.
+     * @return The parser input.
      */
-    public String getInput() {
-        return new String(bytes, StandardCharsets.UTF_8);
+    public ParserInputList<?> getInput() {
+        return input;
     }
 
     /**
-     * Gets the truncated bytes of this state, based off of the current index.
-     * @return The truncated bytes.
+     * Sets the input to the parser.
+     * @param input The parser input.
      */
-    public byte[] getTruncatedBytes() {
-        if (updateTruncatedBytesCache) {
-            truncatedBytesCache = Arrays.copyOfRange(bytes, index, bytes.length);
-            updateTruncatedBytesCache = false;
-        }
-
-        return truncatedBytesCache;
-    }
-
-    /**
-     * Gets the portion of the input that has not been parsed yet.
-     * @return The truncated input.
-     */
-    public String getSubstring() {
-        byte[] truncated = getTruncatedBytes();
-        return new String(truncated, StandardCharsets.UTF_8);
+    public void setInput(ParserInputList<?> input) {
+        this.input = input;
     }
 
     /**
@@ -102,7 +83,7 @@ public class ParserState<ResultType> {
      * @return The index.
      */
     public int getIndex() {
-        return index;
+        return input.getIndex();
     }
 
     /**
@@ -111,9 +92,7 @@ public class ParserState<ResultType> {
      * @return This ParserState, for method chaining.
      */
     public ParserState<ResultType> setIndex(int index) {
-        this.index = index;
-        updateTruncatedBytesCache = true;
-
+        input.setIndex(index);
         return this;
     }
 
@@ -150,8 +129,7 @@ public class ParserState<ResultType> {
      * @return This ParserState, for method chaining.
      */
     public <NewResultType> ParserState<NewResultType> setResult(NewResultType newResult) {
-        ParserState<NewResultType> newState = new ParserState<>(bytes);
-        newState.setIndex(index);
+        ParserState<NewResultType> newState = new ParserState<>(input);
         newState.setException(exception);
         newState.result = newResult;
         return newState;
@@ -188,17 +166,8 @@ public class ParserState<ResultType> {
      * @return A copy of this ParserState.
      */
     public ParserState<ResultType> duplicate() {
-        ParserState<ResultType> duplicated = new ParserState<ResultType>(bytes).setIndex(index).setException(exception).setResult(result).setIgnoreResult(ignoreResult);
-        duplicated.truncatedBytesCache = truncatedBytesCache;
-        duplicated.updateTruncatedBytesCache = updateTruncatedBytesCache;
-
+        ParserState<ResultType> duplicated = new ParserState<ResultType>(input).setException(exception).setResult(result).setIgnoreResult(ignoreResult);
         return duplicated;
-    }
-
-    public int addIndexFromStringLength(int length) {
-        String substring = getSubstring();
-        String string = substring.substring(0, length);
-        return index + string.getBytes(StandardCharsets.UTF_8).length;
     }
 
     /**
@@ -237,7 +206,11 @@ public class ParserState<ResultType> {
      * @return The duplicated ParserState, with the updated exception.
      */
     public ParserState<ResultType> formatException(Parser<?> parser, String actualValue) {
-        return withException("Exception in " + parser.getParserName() + " parser (position " + index + "): Expected " + parser.getExpectedValueName() + " but got " + actualValue + " instead.");
+        return withException("Exception in " + parser.getParserName() + " parser (position " + getIndex() + "): Expected " + parser.getExpectedValueName() + " but got " + actualValue + " instead.");
+    }
+
+    public ParserState<ResultType> badInputType(Parser<?> parser) {
+        return withException("Exception in " + parser.getParserName() + ": Bad input type!");
     }
 
     /**

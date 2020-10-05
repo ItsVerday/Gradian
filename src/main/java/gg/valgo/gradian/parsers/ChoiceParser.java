@@ -27,8 +27,7 @@ public class ChoiceParser extends Parser<Object> {
             }
         }
 
-        String substring = state.getSubstring();
-        return state.updateType().formatException(this, "string \"" + substring.substring(0, Math.min(substring.length(), 10)) + "\"");
+        return state.updateType().formatException(this, "value " + state.getInput().getCurrent().toString());
     }
 
     @Override
