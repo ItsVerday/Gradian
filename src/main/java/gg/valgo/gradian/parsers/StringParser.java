@@ -34,7 +34,7 @@ public class StringParser extends Parser<String> {
             substring = input.getSubstring();
         } else {
             BytesInputList inputList = (BytesInputList) state.getInput();
-            Byte[] bytes = (Byte[]) inputList.getElements().toArray();
+            Byte[] bytes = (Byte[]) inputList.getTruncated().toArray();
             byte[] b = new byte[bytes.length];
             int index = 0;
             for (Byte b2 : bytes) {

@@ -456,6 +456,14 @@ A parser which always succeeds with the specified result.
     *No examples yet...*
 </details>
 
+### `Gradian.token(Token token)` -> `Token`
+Parses a single token. This parser will fail if the token cannot be matched. Otherwise, this parser will result in a single token.
+- `Token token` -> The token to parse
+
+### `Gradian.tokens(Token... tokens)` -> `ArrayList<Token>`
+Parses a sequence of tokens. This parser will fail if the tokens cannot be matched. Otherwise, this parser will result in an ArrayList of tokens.
+- `Token... tokens` -> The tokens to parse
+
 ### `Gradian.u8` -> `long | int`
 Parses an unsigned 1-byte binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
 

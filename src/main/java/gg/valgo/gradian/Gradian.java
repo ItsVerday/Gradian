@@ -1,8 +1,10 @@
 package gg.valgo.gradian;
 
+import gg.valgo.gradian.input.Token;
 import gg.valgo.gradian.parsers.*;
 import gg.valgo.gradian.parsers.binary.BinaryParser;
 import gg.valgo.gradian.parsers.binary.ExactBinaryParser;
+import gg.valgo.gradian.parsers.tokens.TokensParser;
 import gg.valgo.gradian.util.Coroutine;
 
 /**
@@ -327,6 +329,24 @@ public class Gradian {
      */
     public static <ResultType> SucceedWithParser<ResultType> succeedWith(ResultType result) {
         return new SucceedWithParser<>(result);
+    }
+
+    /**
+     * Parses a single token. This parser will fail if the token cannot be matched. Otherwise, this parser will result in a single token.
+     * @param token The token to parse.
+     * @return The token parser.
+     */
+    public static Parser<Token> token(Token token) {
+        return tokens(token).map(result -> result.get(0));
+    }
+
+    /**
+     * Parses a sequence of tokens. This parser will fail if the tokens cannot be matched. Otherwise, this parser will result in an ArrayList of tokens.
+     * @param tokens The tokens to parse.
+     * @return The tokens parser.
+     */
+    public static TokensParser tokens(Token... tokens) {
+        return new TokensParser(tokens);
     }
 
     /**
