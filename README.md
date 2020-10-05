@@ -52,7 +52,7 @@ This library is named Gradian because of the naming of the node package it is ba
 - [`.fail(String message)`](#gradianfailstring-message---null)
 - [`.succeedWith(Object result)`](#gradiansucceedwithobject-result---result)
 - [`.token(Token token)`](#gradiantokentoken-token---token)
-- [`.tokens(Token... token)](#gradiantokenstoken-tokens---arraylisttoken)
+- [`.tokens(Token... token)`](#gradiantokenstoken-tokens---arraylisttoken)
 - [`.u8`](#gradianu8---long--int)
 - [`.s8`](#gradians8---long--int)
 - [`.u16BE`](#gradianu16be---long--int)
