@@ -1,51 +1,56 @@
 package gg.valgo.gradian;
 
 import gg.valgo.gradian.input.Token;
-import gg.valgo.gradian.parsers.*;
-import gg.valgo.gradian.parsers.binary.BinaryParser;
-import gg.valgo.gradian.parsers.binary.ExactBinaryParser;
-import gg.valgo.gradian.parsers.tokens.TokensParser;
-import gg.valgo.gradian.util.Coroutine;
+import gg.valgo.gradian.parsers.util.FailParser;
+import gg.valgo.gradian.parsers.util.LookAheadParser;
+import gg.valgo.gradian.parsers.util.RecursiveParser;
+import gg.valgo.gradian.parsers.util.SucceedWithParser;
+import gg.valgo.gradian.parsers.util.peek.PeekBytesParser;
+import gg.valgo.gradian.parsers.util.peek.PeekStringParser;
+import gg.valgo.gradian.parsers.util.peek.PeekTokensParser;
+import gg.valgo.gradian.util.coroutine.CoroutineExecutor;
+import gg.valgo.gradian.util.interfaces.ParserProducer;
+import gg.valgo.gradian.parsers.combinators.*;
+import gg.valgo.gradian.parsers.matchers.*;
 
 /**
- * The main Gradian class, with static variables/methods to create and combine parsers.
+ * The main Gradian class, with methods to create and combine parsers, as well as static parsers.
  */
 public class Gradian {
     /**
-     * A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit.
-     * This parser returns a string.
+     * A parser which matches a digit. This parser results in a string. This parser fails if the next character in the input is not a digit. This parser returns a string.
      */
-    public static final Parser<String> digit = regex("^[0-9]").setParserName("digit");
+    public static final RegexParser digit = (RegexParser) regex("^[0-9]").setParserName("digit");
 
     /**
-     * A parser which matches 1 or more digits. This parser results in a string. This parser fails if the next character in the input is not a digit. Otherwise, it will match digits until the next character is not a digit.
-     * This parser returns a string.
+     * A parser which matches 1 or more digits. This parser results in a string. This parser fails if the next character in the input is not a digit. Otherwise, it will match digits until the next character is not a digit. This parser returns a string.
      */
-    public static final Parser<String> digits = regex("^[0-9]+").setParserName("digits");
+    public static final RegexParser digits = (RegexParser) regex("^[0-9]+").setParserName("digits");
 
     /**
      * A parser which matches a letter. This parser results in a string. This parser fails if the next character in the input is not a letter.
      * This parser returns a string.
      */
-    public static final Parser<String> letter = regex("^[A-Za-z]").setParserName("letter");
+    public static final RegexParser letter = (RegexParser) regex("^[A-Za-z]").setParserName("letter");
 
     /**
      * A parser which parses 1 or more letters. This parser results in a string. This parser fails if the next character in the input is not a letter. Otherwise, it will match letters until the next character is not a letter.
      * This parser returns a string.
      */
-    public static final Parser<String> letters = regex("^[A-Za-z]+").setParserName("letters");
+    public static final RegexParser letters = (RegexParser) regex("^[A-Za-z]+").setParserName("letters");
+
 
     /**
      * A parser which matches any whitespace characters, up until the next non-whitespace character. This parser fails if the next character in the input is not a whitespace character. If you wish for whitespace to be optional, use `Gradian.optionalWhitespace` instead. The parser will match whitespace characters until the next character is not a whitespace character.
      * This parser returns a string.
      */
-    public static final Parser<String> whitespace = regex("^\\s+").setParserName("whitespace");
+    public static final RegexParser whitespace = (RegexParser) regex("^\\s+").setParserName("whitespace");
 
     /**
      * A parser which optionally matches any whitespace character. If there is no whitespace present, it returns an empty string. Otherwise, it will return a string with the whitespace. This parser will match all whitespace characters, up until a non-whitespace character.
      * This parser returns a string.
      */
-    public static final Parser<String> optionalWhitespace = maybe(whitespace).valueIfAbsent("").mapType();
+    public static final Parser<String> optionalWhitespace = maybe(whitespace).valueIfAbsent("");
 
     /**
      * A parser which matches any character. It results in a character, or a string if `.asString()` is called. This parser will only fail if the end of input has been reached.
@@ -57,11 +62,10 @@ public class Gradian {
      * This parser matches the end of the input. It results in a null value. This parser will fail if the end of input has not been reached.
      * This parser returns a null value.
      */
-    public static final Parser<Object> endOfInput = new EndOfInputParser();
+    public static final EndOfInputParser endOfInput = new EndOfInputParser();
 
     /**
-     * Returns a parser that matches a specific string. This parser will fail if it cannot match the string.
-     * The parser returns a string.
+     * A parser which matches a string, resulting in the input string if successful. If the string cannot be matched, the parser will fail. This parser accepts a string or byte array input.
      * @param string The string to match.
      * @return The string parser.
      */
@@ -70,8 +74,7 @@ public class Gradian {
     }
 
     /**
-     * Returns a parser that matches a single character. Use `.asString()` if you want to receive a string as the result. This parser will fail if it cannot match the specified character.
-     * This parser returns a character, or a string if `.asString()` is called on it.
+     * A parser which matches a single character, resulting in that character if successful. If this parser cannot match the specified character, it will fail. This parser accepts a string or byte array input.
      * @param character The character to match.
      * @return The character parser.
      */
@@ -80,273 +83,59 @@ public class Gradian {
     }
 
     /**
-     * Returns a choice parser that matches one character from the specified string. This parser results in a character. This parser will fail if it cannot match one of the specified characters.
-     * This parser returns a character.
-     * @param chars The character string.
+     * A parser which matches one of several characters in a given string, resulting in that character. If the end of input has been reached or none of the characters could be matched, this parser will fail. Otherwise, this parser will succeed.
+     * @param string The string containing the choices.
      * @return The anyOfString parser.
      */
-    public static Parser<Character> anyOfString(String chars) {
-        return choiceOfCharacters(chars.toCharArray()).setParserName("anyOfString");
+    public static ChoiceOfCharactersParser anyOfString(String string) {
+        return new ChoiceOfCharactersParser(string);
     }
 
     /**
-     * Returns a choice parser that matches one of a list of characters. This parser results in a character. This parser will fail if it cannot match one of the specified characters.
-     * This parser returns a character.
-     * @param chars An array of characters to choose from.
+     * A parser which matches one of several characters, resulting in that character. If the end of input has been reached or none of the characters could be matched, this parser will fail. Otherwise, this parser will succeed.
+     * @param chars The choices for characters to match.
      * @return The choiceOfCharacters parser.
      */
-    public static Parser<Character> choiceOfCharacters(char... chars) {
-        CharacterParser[] characterParsers = new CharacterParser[chars.length];
-
-        int index = 0;
-        for (char character : chars) {
-            characterParsers[index++] = character(character);
-        }
-
-        return choice(characterParsers).setParserName("choiceOfCharacters").mapType();
+    public static ChoiceOfCharactersParser choiceOfCharacters(char... chars) {
+        return new ChoiceOfCharactersParser(chars);
     }
 
     /**
-     * A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
-     * This parser returns a string.
-     * @param pattern The regex pattern to match.
-     * @return The regex parser, with flags defaulting to 0
-     */
-    public static RegexParser regex(String pattern) {
-        return regex(pattern, 0);
-    }
-
-    /**
-     * A parser which matches a regular expression. This parser will fail if it cannot match the pattern.
-     * This parser returns a string.
-     * @param pattern The regex pattern to match.
-     * @param flags The regex flags.
+     * A parser which matches a regular expression in a string. If matching was successful, the match is returned. Otherwise, the parser fails. This parser only accepts string input.
+     * @param pattern The pattern to match. All patterns should start with a "^" character, so that only the current input is matched.
      * @return The regex parser.
      */
-    public static RegexParser regex(String pattern, int flags) {
-        return new RegexParser(pattern, flags);
+    public static RegexParser regex(String pattern) {
+        return new RegexParser(pattern);
     }
 
     /**
-     * Returns a parser which optionally matches another parser. If a match cannot be made, the parser has a result of null. If you wish to ignore the result if it is absent, use `.ignoreIfAbsent()`. If you wish to return a specific value if the result is absent, use `.valueIfAbsent(Object value)`. This parser cannot fail.
-     * This parser returns the result of its child parser if the child parser succeeded. If not, it returns null, or the result is ignored if `.ignoreIfAbsent()` is called.
-     * @param parser The parser to possibly match.
-     * @return The maybe parser.
+     * A parser which matches a regular expression in a string. If matching was successful, the match (or a group within the match) is returned. Otherwise, the parser fails. This parser only accepts string input.
+     * @param pattern The pattern to match. All patterns should start with a "^" character, so that only the current input is matched.
+     * @param flags The regex flags, use 0 for no flags.
+     * @param group The group in the regex to use as the result. Use 0 to result in the entire match.
+     * @return The regex parser.
      */
-    public static <ResultType> MaybeParser<ResultType> maybe(Parser<ResultType> parser) {
-        return new MaybeParser<>(parser);
+    public static RegexParser regex(String pattern, int flags, int group) {
+        return new RegexParser(pattern, flags, group);
     }
 
     /**
-     * Returns a parser which matches another parser, but ignores the result. Useful in parsers such as sequence, in order to omit unnecessary data. This parser cannot fail.
-     * This parser returns null.
-     * @param parser The parser to ignore the result of.
-     * @return The ignore parser.
-     */
-    public static <ResultType> IgnoreParser<ResultType> ignore(Parser<ResultType> parser) {
-        return new IgnoreParser<>(parser);
-    }
-
-    /**
-     * A parser which parses a sequence of parsers. If any parser in the sequence fails, then the sequence parser fails. By default, this parser results in an array. If you would like to receive an ArrayList back, use `.asArrayList()`. If you would like to join the resulting values, use `.join(String delimiter)`.
-     * This parser returns an array or ArrayList of results from the results of the elements in its sequence.
-     * @param parsers A list of parsers, which will be used in the sequence.
-     * @return The sequence parser.
-     */
-    public static SequenceParser sequence(Parser<?>... parsers) {
-        return new SequenceParser(parsers);
-    }
-
-    /**
-     * A parser which parses a child parser between two other parsers. This parser will fail in the same way as a sequence parser. The result of the middle parser is returned.
-     * This parser returns the result of the "middle" parser.
-     * @param left The left parser, which will be parsed before the middle parser.
-     * @param right The right parser, which will be parsed after the middle parser.
-     * @param parser The middle parser, which is the parser whose result will be returned.
-     * @return The between parser.
-     */
-    public static <ResultType> Parser<Object> between(Parser<?> left, Parser<?> right, Parser<ResultType> parser) {
-        return sequence(left, parser, right).map(array -> array[1]).setParserName("between");
-    }
-
-    /**
-     * A parser which attempts to parse each "choice" it is given. The first parser that doesn't fail is the one that is chosen, and the result from that parser is used. If every choice fails, then this parser will fail.
-     * This parser returns the result of the first parser that "passes".
-     * @param parsers A list of choices, which will be attempted in that order.
-     * @return The choice parser.
-     */
-    public static Parser<Object> choice(Parser<?>... parsers) {
-        return new ChoiceParser(parsers).setParserName("choice");
-    }
-
-    /**
-     * A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next character. If the end of input has been reached, this parser will result in an empty string. This parser cannot fail.
-     * This parser returns a string with a single "peeked" character, or an empty string.
-     */
-    public static final PeekParser peek1 = peek(1);
-
-    /**
-     * A parser which "peeks" ahead in the string, without consuming any input. This parser will peek at the next n chars, with n being the input to this method. If the input has less characters left than the amount of characters, the result will be truncated. This parser cannot fail.
-     * This parser returns the "peeked" characters, a string.
-     * @param chars The amount of characters to peek.
-     * @return The peek parser.
-     */
-    public static PeekParser peek(int chars) {
-        return new PeekParser(chars);
-    }
-
-    /**
-     * A parser which attempts to parse its child parser, without consuming input. This parser will fail if its child parser fails.
-     * This parser results in the result type of its child parser.
-     * @param parser The parser to look ahead with.
-     * @param <ResultType> The result type of the child parser.
-     * @return The lookAhead parser.
-     */
-    public static <ResultType> LookAheadParser<ResultType> lookAhead(Parser<ResultType> parser) {
-        return new LookAheadParser<>(parser);
-    }
-
-    /**
-     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called.  If you would like to join the resulting values, use `.join(String delimiter)`.
-     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
-     * @param parser The parser to repeat.
-     * @return The many parser.
-     */
-    public static <ResultType> ManyParser<ResultType> many(Parser<ResultType> parser) {
-        return (ManyParser<ResultType>) new ManyParser<>(parser, -1, -1).setParserName("many");
-    }
-
-    /**
-     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser cannot parse enough instances, it fails.
-     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
-     * @param parser The parser to repeat.
-     * @param minimumCount The minimum amount of repetitions to allow.
-     * @return The atLeast parser.
-     */
-    public static <ResultType> ManyParser<ResultType> atLeast(Parser<ResultType> parser, int minimumCount) {
-        return (ManyParser<ResultType>) new ManyParser<>(parser, minimumCount, -1).setParserName("atLeast");
-    }
-
-    /**
-     * A parser which parses at least one instance of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser cannot parse at least one instance, it fails.
-     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
-     * @param parser The parser to repeat.
-     * @return The atLeastOne parser.
-     */
-    public static <ResultType> ManyParser<ResultType> atLeastOne(Parser<ResultType> parser) {
-        return (ManyParser<ResultType>) atLeast(parser, 1).setParserName("atLeastOne");
-    }
-
-    /**
-     * A parser which parses multiple instances of the parser passed into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser parses too many instances, it fails.
-     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
-     * @param parser The parser to repeat.
-     * @param maximumCount The maximum amount of repetitions to allow.
-     * @return The atMost parser.
-     */
-    public static <ResultType> ManyParser<ResultType> atMost(Parser<ResultType> parser, int maximumCount) {
-        return (ManyParser<ResultType>) new ManyParser<>(parser, -1, maximumCount).setParserName("atMost");
-    }
-
-    /**
-     * A parser which parses multiple instances of the parser passed into it, the amount of which will be in a range. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser parses too many of too few instances, it fails.
-     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
-     * @param parser The parser to repeat.
-     * @param minimumCount The minimum amount of repetitions to allow.
-     * @param maximumCount The maximum amount of repetitions to allow.
-     * @return The manyBetween parser.
-     */
-    public static <ResultType> ManyParser<ResultType> manyBetween(Parser<ResultType> parser, int minimumCount, int maximumCount) {
-        return (ManyParser<ResultType>) new ManyParser<>(parser, minimumCount, maximumCount).setParserName("manyBetween");
-    }
-
-    /**
-     * A parser which parses a certain amount of instances of the parser passes into it. This parser repeats until it is not able to parse any more instances of the child parser. Results are returned in an array, or an ArrayList if `.asArrayList()` is called. If you would like to join the resulting values, use `.join(String delimiter)`. If the parser doesn't parse the right amount of instances, it fails.
-     * This parser returns an array of results, an ArrayList if `.asArrayList()` is called, or a String if `.join(String delimiter)` is called.
-     * @param parser The parser to repeat.
-     * @param count The amount of repetitions to parse.
-     * @return The exactly parser.
-     */
-    public static <ResultType> ManyParser<ResultType> exactly(Parser<ResultType> parser, int count) {
-        return (ManyParser<ResultType>) manyBetween(parser, count, count).setParserName("exactly");
-    }
-
-    /**
-     * A parser which parses values, separated by a separator. This parser will fail if the separator is not followed by a value. Empty "lists" are allowed. An array of values, separated by the separator, is returned. If you would like to receive an ArrayList back, use `.asArrayList()`. If you would like to join the resulting values, use `.join(String delimiter)`.
-     * This parser returns an array or ArrayList of values, separated by the separator, or a String if `.join(String delimiter) is called`.
-     * @param separator The separator between values.
-     * @param values The values to parse between separators.
-     * @return A separatedBy parser.
-     */
-    public static <ResultType> SeparatedByParser<ResultType> separatedBy(Parser<?> separator, Parser<ResultType> values) {
-        return new SeparatedByParser<>(separator, values);
-    }
-
-    /**
-     * A parser which matches everything up until the specified parser. If this parser reaches the end of input, it will fail. Otherwise, the result is everything matched up until the specified parser.
-     * This parser returns a string.
-     * @param parser The parser to match everything up until.
-     * @return The everythingUntil parser.
-     */
-    public static EverythingUntilParser everythingUntil(Parser<?> parser) {
-        return new EverythingUntilParser(parser);
-    }
-
-    /**
-     * A parser which matches anything except the parser passed into it. If the child parser passes, this parser will fail. Otherwise, the result is the current character in the string.
-     * This parser returns a character.
-     * @param parser The parser to not match.
-     * @return The anythingExcept parser.
-     */
-    public static AnythingExceptParser anythingExcept(Parser<?> parser) {
-        return new AnythingExceptParser(parser);
-    }
-
-    /**
-     * Creates a coroutine parser, allowing you to run custom logic in a parser. This is an advanced parser. It will fail if any of the parsers used inside of it fail. Otherwise, it will result in the value returned from the lambda.
-     * @param executor A lambda taking in a context, with a `.yield()` method. When you want to parse a value, use `.yield(parser)` to parse that parser, and get its result back. The context also has a `.reject()` method, which will exit out of the coroutine and fail the parser.
-     * @return A coroutine parser.
-     */
-    public static <ResultType> CoroutineParser<ResultType> coroutine(Coroutine.CoroutineExecutor<ResultType, Parser<?>, Object> executor) {
-        return new CoroutineParser<>(executor);
-    }
-
-    /**
-     * A parser which always fails with the specified message. Useful for failing a coroutine or other complex logic with a custom message.
-     * This parser always fails, meaning it never has a result.
-     * @param message The message to fail with.
-     * @return The fail parser.
-     */
-    public static FailParser fail(String message) {
-        return new FailParser(message);
-    }
-
-    /**
-     * A parser which always succeeds with the specified result.
-     * @param result The result to succeed with.
-     * @param <ResultType> The type of the result.
-     * @return The succeedWith parser.
-     */
-    public static <ResultType> SucceedWithParser<ResultType> succeedWith(ResultType result) {
-        return new SucceedWithParser<>(result);
-    }
-
-    /**
-     * Parses a single token. This parser will fail if the token cannot be matched. Otherwise, this parser will result in a single token.
-     * @param token The token to parse.
-     * @return The token parser.
-     */
-    public static Parser<Token> token(Token token) {
-        return tokens(token).map(result -> result.get(0));
-    }
-
-    /**
-     * Parses a sequence of tokens. This parser will fail if the tokens cannot be matched. Otherwise, this parser will result in an ArrayList of tokens.
-     * @param tokens The tokens to parse.
+     * A parser which matches a sequence of tokens in a token list, based only on id (data is ignored). If the sequence of tokens cannot be matched, this parser will fail. This parser only accepts a tokens input.
+     * @param tokens The tokens to match.
      * @return The tokens parser.
      */
-    public static TokensParser tokens(Token... tokens) {
+    public static TokensParser tokens(Token<?>... tokens) {
         return new TokensParser(tokens);
+    }
+
+    /**
+     * A parser which matches a single token, based only on id (data is ignored). If the token cannot be matched, this parser will fail. This parser only accepts a tokens input.
+     * @param token The token to match.
+     * @return The token parser.
+     */
+    public static Parser<Token<?>> token(Token<?> token) {
+        return tokens(token).index(0).setParserName("token");
     }
 
     /**
@@ -513,41 +302,369 @@ public class Gradian {
     }
 
     /**
-     * Used to create recursive parsers.
-     * @param producer A lambda which returns a parser.
-     * @return A parser which acts exactly the same as the returned parser.
+     * Optionally parses a value, resulting in null if the value could not be matched. This parser will never fail. This parser accepts any type of input.
+     * @param parser The parser to optionally match.
+     * @param <ResultType> The type of the parser result.
+     * @return The maybe parser.
      */
-    public static <ResultType> Parser<ResultType> recursive(ParserProducer<ResultType> producer) {
-        return new Parser<>() {
-            private Parser<ResultType> parser;
-
-            private void produce() {
-                if (parser == null) {
-                    parser = producer.produce();
-                }
-            }
-
-            @Override
-            public ParserState<ResultType> parse(ParserState<?> state) {
-                produce();
-                return parser.parse(state);
-            }
-
-            @Override
-            public String getParserName() {
-                produce();
-                return parser.getParserName();
-            }
-
-            @Override
-            public String getExpectedValueName() {
-                produce();
-                return "[recursive parser...]";
-            }
-        };
+    public static <ResultType> MaybeParser<ResultType> maybe(Parser<ResultType> parser) {
+        return new MaybeParser<>(parser);
     }
 
-    public interface ParserProducer<ResultType> {
-        Parser<ResultType> produce();
+    /**
+     * Parses a value from a list of choices. The choices are attempted in the order they were specified, and the first one to succeed is the result. Order matters! If none of the parsers succeed, this parser will fail. This parser works with any input type.
+     * @param parsers The parsers to choose from.
+     * @param <ResultType> The type of the result.
+     * @return The choice parser.
+     */
+    public static <ResultType> ChoiceParser<ResultType> choice(Parser<ResultType>... parsers) {
+        return new ChoiceParser<>(parsers);
+    }
+
+    /**
+     * Parses a value from a list of choices. The choices are attempted in the order they were specified, and the first one to succeed is the result. Order matters! If none of the parsers succeed, this parser will fail. This parser works with any input type.
+     * @param parsers The parsers to choose from.
+     * @return The anyTypeChoice parser.
+     */
+    public static ChoiceParser<Object> anyTypeChoice(Parser<?>... parsers) {
+        return (ChoiceParser<Object>) ChoiceParser.anyTypeChoice(parsers).setParserName("anyTypeChoice");
+    }
+
+    /**
+     * Parses a sequence of parsers in order, and returns the results of each parser in order. If any of the parsers in the sequence fail, this parser will fail  This parser works with any input type.
+     * @param parsers The sequence of parsers.
+     * @param <ResultType> The type of the result.
+     * @return The sequence parser.
+     */
+    public static <ResultType> SequenceParser<ResultType> sequence(Parser<ResultType>... parsers) {
+        return new SequenceParser<>(parsers);
+    }
+
+    /**
+     * Parses a sequence of parsers in order, and returns the results of each parser in order. If any of the parsers in the sequence fail, this parser will fail  This parser works with any input type.
+     * @param parsers The sequence of parsers.
+     * @return The anyTypeSequence parser.
+     */
+    public static SequenceParser<Object> anyTypeSequence(Parser<?>... parsers) {
+        return (SequenceParser<Object>) SequenceParser.anyTypeSequence(parsers).setParserName("anyTypeSequence");
+    }
+
+    /**
+     * Parses a value repeatedly until it cannot parse any more of that value. This parser will always succeed. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The many parser.
+     */
+    public static <ResultType> ManyParser<ResultType> many(Parser<ResultType> parser) {
+        return (ManyParser<ResultType>) manyRange(parser, -1, -1).setParserName("many");
+    }
+
+    /**
+     * Parses a value repeatedly until it cannot parse any more of that value. If the amount of matches is not in the specified range, this parser will fail. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param minimumCount The minimum amount of times to repeat. Use -1 for no minimum.
+     * @param maximumCount The maximum amount of times to repeat. Use -1 for no maximum.
+     * @param <ResultType> The result type of the parser.
+     * @return The manyRange parser.
+     */
+    public static <ResultType> ManyParser<ResultType> manyRange(Parser<ResultType> parser, int minimumCount, int maximumCount) {
+        return (ManyParser<ResultType>) new ManyParser<>(parser, minimumCount, maximumCount).setParserName("manyRange");
+    }
+
+    /**
+     * Parses a value repeatedly until it cannot parse any more of that value. If the amount of matches is too small, this parser will fail. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param minimumCount The minimum amount of times to repeat. Use -1 for no minimum.
+     * @param <ResultType> The result type of the parser.
+     * @return The atLeast parser.
+     */
+    public static <ResultType> ManyParser<ResultType> atLeast(Parser<ResultType> parser, int minimumCount) {
+        return (ManyParser<ResultType>) manyRange(parser, minimumCount, -1).setParserName("atLeast");
+    }
+
+    /**
+     * Parses a value repeatedly until it cannot parse any more of that value. If no matches could be made, this parser will fail. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The atLeastOne parser.
+     */
+    public static <ResultType> ManyParser<ResultType> atLeastOne(Parser<ResultType> parser) {
+        return (ManyParser<ResultType>) atLeast(parser, 1).setParserName("atLeastOne");
+    }
+
+    /**
+     * Parses a value repeatedly until it cannot parse any more of that value. If the amount of matches is too large, this parser will fail. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param maximumCount The maximum amount of times to repeat. Use -1 for no maximum.
+     * @param <ResultType> The result type of the parser.
+     * @return The atMost parser.
+     */
+    public static <ResultType> ManyParser<ResultType> atMost(Parser<ResultType> parser, int maximumCount) {
+        return (ManyParser<ResultType>) manyRange(parser, -1, maximumCount).setParserName("atMost");
+    }
+
+    /**
+     * Parses a value repeatedly a certain number of times. If the parser cannot match exactly that many values, this parser will fail. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param count The amount of times to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The exactly parser.
+     */
+    public static <ResultType> ManyParser<ResultType> exactly(Parser<ResultType> parser, int count) {
+        return (ManyParser<ResultType>) manyRange(parser, count, count).setParserName("exactly");
+    }
+
+    /**
+     * Parses a value separated by a separator repeatedly until it cannot parse any more of that value. This parser will always succeed. This parser works with any input type.
+     * @param separator The separator between values.
+     * @param values The parser to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The separatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> separatedBy(Parser<?> separator, Parser<ResultType> values) {
+        return (SeparatedByParser<ResultType>) rangeSeparatedBy(separator, values, -1, -1).setParserName("separatedBy");
+    }
+
+    /**
+     * Parses a value separated by a separator repeatedly until it cannot parse any more of that value. If the amount of matches is not in the specified range, this parser will fail. This parser works with any input type.
+     * @param separator The separator between values.
+     * @param values The parser to repeat.
+     * @param minimumCount The minimum amount of times to repeat. Use -1 for no minimum.
+     * @param maximumCount The maximum amount of times to repeat. Use -1 for no maximum.
+     * @param <ResultType> The result type of the parser.
+     * @return The rangeSeparatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> rangeSeparatedBy(Parser<?> separator, Parser<ResultType> values, int minimumCount, int maximumCount) {
+        return (SeparatedByParser<ResultType>) new SeparatedByParser<>(separator, values, minimumCount, maximumCount).setParserName("rangeSeparatedBy");
+    }
+
+    /**
+     * Parses a value separated by a separator repeatedly until it cannot parse any more of that value. If the amount of matches is too small, this parser will fail. This parser works with any input type.
+     * @param separator The separator between values.
+     * @param values The parser to repeat.
+     * @param minimumCount The minimum amount of times to repeat. Use -1 for no minimum.
+     * @param <ResultType> The result type of the parser.
+     * @return The atLeastSeparatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> atLeastSeparatedBy(Parser<?> separator, Parser<ResultType> values, int minimumCount) {
+        return (SeparatedByParser<ResultType>) rangeSeparatedBy(separator, values, minimumCount, -1).setParserName("atLeastSeparatedBy");
+    }
+
+    /**
+     * Parses a value separated by a separator repeatedly until it cannot parse any more of that value. If no matches could be made, this parser will fail. This parser works with any input type.
+     * @param separator The separator between values.
+     * @param values The parser to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The atLeastOneSeparatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> atLeastOneSeparatedBy(Parser<?> separator, Parser<ResultType> values) {
+        return (SeparatedByParser<ResultType>) atLeastSeparatedBy(separator, values, 1).setParserName("atLeastOneSeparatedBy");
+    }
+
+    /**
+     * Parses a value separated by a separator repeatedly until it cannot parse any more of that value. If the amount of matches is too large, this parser will fail. This parser works with any input type.
+     * @param separator The separator between values.
+     * @param values The parser to repeat.
+     * @param maximumCount The maximum amount of times to repeat. Use -1 for no maximum.
+     * @param <ResultType> The result type of the parser.
+     * @return The atMostSeparatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> atMostSeparatedBy(Parser<?> separator, Parser<ResultType> values, int maximumCount) {
+        return (SeparatedByParser<ResultType>) rangeSeparatedBy(separator, values, -1, maximumCount).setParserName("atLeastSeparatedBy");
+    }
+
+    /**
+     * Parses a value separated by a separator repeatedly a certain number of times. If the parser cannot match exactly that many values, this parser will fail. This parser works with any input type.
+     * @param separator The separator between values.
+     * @param values The parser to repeat.
+     * @param count The amount of times to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The exactlySeparatedBy parser.
+     */
+    public static <ResultType> SeparatedByParser<ResultType> exactlySeparatedBy(Parser<?> separator, Parser<ResultType> values, int count) {
+        return (SeparatedByParser<ResultType>) rangeSeparatedBy(separator, values, count, count).setParserName("exactlySeparatedBy");
+    }
+
+    /**
+     * A parser which repeats another parser a specific amount of times. This parser will fail if it cannot match enough values. If there are too many values, the extras will be ignored. This parser works with any input type.
+     * @param parser The parser to repeat.
+     * @param count The amount of times to repeat.
+     * @param <ResultType> The result type of the parser.
+     * @return The repeat parser.
+     */
+    public static <ResultType> RepeatParser<ResultType> repeat(Parser<ResultType> parser, int count) {
+        return new RepeatParser<>(parser, count);
+    }
+
+    /**
+     * A parser which peeks a single character, returned as a string. If the end of input has been reached, an empty string will be returned.
+     */
+    public static Parser<String> peekCharacter = peekString(1).map(array -> {
+        if (array.length > 0) {
+            return array[0];
+        }
+
+        return "";
+    }).asString().setParserName("peekCharacter");
+
+    /**
+     * A parser which peeks a single byte. If the end of input has been reached, null will be returned.
+     */
+    public static Parser<Byte> peekByte = peekBytes(1).map(array -> {
+        if (array.length > 0) {
+            return array[0];
+        }
+
+        return null;
+    }).setParserName("peekByte");
+
+    /**
+     * A parser which peeks a single token. If the end of input has been reached, null will be returned.
+     */
+    public static Parser<? extends Token<?>> peekToken = peekTokens(1).map(array -> {
+        if (array.length > 0) {
+            return array[0];
+        }
+
+        return null;
+    }).setParserName("peekToken");
+
+    /**
+     * A parser which "peeks" ahead at the upcoming string input, without consuming any input. If less characters were found than expected, the resulting string will be shortened.
+     * @param count The amount of characters to peek.
+     * @return The peekString parser.
+     */
+    public static PeekStringParser peekString(int count) {
+        return new PeekStringParser(count);
+    }
+
+    /**
+     * A parser which "peeks" ahead at the upcoming bytes input, without consuming any input. If less bytes were found than expected, the resulting bytes array will be shortened.
+     * @param count The amount of bytes to peek.
+     * @return The peekBytes parser.
+     */
+    public static PeekBytesParser peekBytes(int count) {
+        return new PeekBytesParser(count);
+    }
+
+    /**
+     * A parser which "peeks" ahead at the upcoming tokens input, without consuming any input. If less tokens were found than expected, the resulting tokens list will be shortened.
+     * @param count The amount of tokens to peek.
+     * @return The peekTokens parser.
+     */
+    public static PeekTokensParser peekTokens(int count) {
+        return new PeekTokensParser(count);
+    }
+
+    /**
+     * Matches anything except a certain parser. If that parser is not matched, one element (character, byte, token, ...) of input is consumed. This parser will fail if the specified parser succeeds, the end of input is reached, or the input type does not match the parser type. Use this version for string inputs.
+     * @param parser The parser to not match.
+     * @return The anythingExcept parser.
+     */
+    public static AnythingExceptParser<Character> stringAnythingExcept(Parser<?> parser) {
+        return new AnythingExceptParser<>(parser);
+    }
+
+    /**
+     * Matches anything except a certain parser. If that parser is not matched, one element (character, byte, token, ...) of input is consumed. This parser will fail if the specified parser succeeds, the end of input is reached, or the input type does not match the parser type. Use this version for byte array inputs.
+     * @param parser The parser to not match.
+     * @return The anythingExcept parser.
+     */
+    public static AnythingExceptParser<Byte> bytesAnythingExcept(Parser<?> parser) {
+        return new AnythingExceptParser<>(parser);
+    }
+
+    /**
+     * Matches anything except a certain parser. If that parser is not matched, one element (character, byte, token, ...) of input is consumed. This parser will fail if the specified parser succeeds, the end of input is reached, or the input type does not match the parser type. Use this version for token list inputs.
+     * @param parser The parser to not match.
+     * @return The anythingExcept parser.
+     */
+    public static AnythingExceptParser<Token<?>> tokensAnythingExcept(Parser<?> parser) {
+        return new AnythingExceptParser<>(parser);
+    }
+
+    /**
+     * Parses input elements until a certain value is reached in the input. If the end of input is reached or the input has an incorrect element type, this parser will fail. Otherwise, a string of the characters matched is returned. Use this parser for string inputs.
+     * @param parser The parser to match everything until.
+     * @return The stringUntil parser.
+     */
+    public static Parser<String> stringUntil(Parser<?> parser) {
+        return everyCharacterUntil(parser).join("").setParserName("stringUntil");
+    }
+
+    /**
+     * Parses input elements until a certain value is reached in the input. If the end of input is reached or the input has an incorrect element type, this parser will fail. Otherwise, an array of the elements matched is returned. Use this parser for string inputs.
+     * @param parser The parser to match everything until.
+     * @return The everythingUntil parser.
+     */
+    public static EverythingUntilParser<Character> everyCharacterUntil(Parser<?> parser) {
+        return new EverythingUntilParser<>(parser);
+    }
+
+    /**
+     * Parses input elements until a certain value is reached in the input. If the end of input is reached or the input has an incorrect element type, this parser will fail. Otherwise, an array of the elements matched is returned. Use this parser for byte array inputs.
+     * @param parser The parser to match everything until.
+     * @return The everythingUntil parser.
+     */
+    public static EverythingUntilParser<Byte> everyByteUntil(Parser<?> parser) {
+        return new EverythingUntilParser<>(parser);
+    }
+
+    /**
+     * Parses input elements until a certain value is reached in the input. If the end of input is reached or the input has an incorrect element type, this parser will fail. Otherwise, an array of the elements matched is returned. Use this parser for token list inputs.
+     * @param parser The parser to match everything until.
+     * @return The everythingUntil parser.
+     */
+    public static EverythingUntilParser<Token<?>> everyTokenUntil(Parser<?> parser) {
+        return new EverythingUntilParser<>(parser);
+    }
+
+    /**
+     * A parser which "looks ahead" by matching another parser, without consuming any input. If that parser cannot be matched, this parser will fail.
+     * @param parser The parser to look ahead with.
+     * @param <ResultType> The result type of this parser.
+     * @return The lookAhead parser.
+     */
+    public static <ResultType> LookAheadParser<ResultType> lookAhead(Parser<ResultType> parser) {
+        return new LookAheadParser<>(parser);
+    }
+
+    /**
+     * An advanced parser which runs custom logic in a lambda. Parsers can be "yielded", and they will be parsed. If the parser succeeds, the result of the parser is returned from the yield method, and if the parser fails, the coroutine execution is stopped.
+     * @param executor The executor, a lambda taking in a context which receives a context with yield() and reject() methods.
+     * @param <ResultType> The result type of this parser.
+     * @return The coroutine parser.
+     */
+    public static <ResultType> CoroutineParser<ResultType> coroutine(CoroutineExecutor<ResultType> executor) {
+        return new CoroutineParser<>(executor);
+    }
+
+    /**
+     * A utility parser which always succeeds with a given value.
+     * @param result The result to succeed with.
+     * @param <ResultType> The result type of this parser.
+     * @return The succeedWith parser.
+     */
+    public static <ResultType> SucceedWithParser<ResultType> succeedWith(ResultType result) {
+        return new SucceedWithParser<>(result);
+    }
+
+    /**
+     * A utility parser which always fails with a given message. Useful for providing more detailed error messages in your parser.
+     * @param message The message to fail with.
+     * @return The fail parser.
+     */
+    public static FailParser fail(String message) {
+        return new FailParser(message);
+    }
+
+    /**
+     * A parser which accepts a lambda producing a parser, allowing for recursive parsers.
+     * @param producer The parser producer.
+     * @param <ResultType> The result type.
+     * @return The recursive parser.
+     */
+    public static <ResultType> RecursiveParser<ResultType> recursive(ParserProducer<ResultType> producer) {
+        return new RecursiveParser<>(producer);
     }
 }

@@ -1,25 +1,43 @@
 package gg.valgo.gradian;
 
-import gg.valgo.gradian.input.Token;
+import gg.valgo.gradian.util.interfaces.ErrorTransformer;
+import gg.valgo.gradian.util.interfaces.ParserResultMapper;
+import gg.valgo.gradian.util.interfaces.ParserStateMapper;
+import gg.valgo.gradian.util.interfaces.SuccessTransformer;
+import gg.valgo.gradian.parsers.util.MappedParser;
+import gg.valgo.gradian.input.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
+/**
+ * Represents a parser which parses an input. It updates the state with a new index and result, or if the parsing failed, returns a state with an exception.
+ * @param <ResultType> The type of the result of this parser.
+ */
 public abstract class Parser<ResultType> {
+    /**
+     * The name of this parser, used in error messages.
+     */
     private String parserName;
-    public abstract ParserState<ResultType> parse(ParserState<?> state);
-    public abstract String getExpectedValueName();
 
     /**
-     * Gets the name of the parser (for error messages).
-     * @return The name of the parser.
+     * Runs the parsing logic of the parser. This method will only be called if the parser is not currently in an errored state, and the input is valid. This method should only be called internally, use execute() instead.
+     * @param state The current parser state.
+     * @return The updated parser state, after parsing.
+     */
+    public abstract ParserState<ResultType> parse(ParserState<?> state);
+
+    /**
+     * Gets the name of this parser, used in error messages.
+     * @return The name of this parser.
      */
     public String getParserName() {
         return parserName;
     }
 
     /**
-     * Sets the parser name. Many parsers override this with a fixed name, so this will not always work.
-     * @param parserName The new parser name.
+     * Sets the name of this parser, used in error messages.
+     * @param parserName The name of this parser.
      * @return This parser, for method chaining.
      */
     public Parser<ResultType> setParserName(String parserName) {
@@ -28,37 +46,88 @@ public abstract class Parser<ResultType> {
     }
 
     /**
-     * Runs a parser on a given string. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
-     * @param input The string to parse.
-     * @return A `ParserState` with information about the result, and whether the string could be parsed.
+     * Checks whether a given input is valid for this parser. If not, and false is returned, the parser will be put into an errored state. If a parser works with all input types (a combinator), it should return true.
+     * @param input The parser input.
+     * @return Whether the parser input is valid for this parser.
+     */
+    public boolean inputIsValid(ParserInput<?> input) {
+        return true;
+    }
+
+    /**
+     * Gets the expected input type as a string, used for error messages. If a parser overrides inputIsValid(), this should also be overridden.
+     * @return The name of the expected input type.
+     */
+    public String getExpectedInputName() {
+        return "any input";
+    }
+
+    /**
+     * Runs a parser on a certain state, validating the state before running the parsing logic.
+     * @return The updated parser state.
+     */
+    public ParserState<ResultType> execute(ParserState<?> state) {
+        if (state.isException()) {
+            return state.retype();
+        }
+
+        if (!inputIsValid(state.getInput())) {
+            return state.formatBadInputTypeException(this, getExpectedInputName(), state.getInput().getInputName()).retype();
+        }
+
+        return parse(state);
+    }
+
+    /**
+     * Runs a parser on a given input string, returning the resulting state. Running state.getResult() will return the result (if parsing was successful). If parsing failed, state.isException() will return true, and state.getException() will return the exception.
+     * @param input The string input to this parser.
+     * @return The resulting parser state.
      */
     public ParserState<ResultType> run(String input) {
-        return parse(new ParserState<>(input));
+        return execute(new ParserState<>(new StringParserInput(input)));
     }
 
     /**
-     * Runs a parser on a given byte array. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
-     * @param bytes The byte array to parse.
-     * @return A `ParserState` with information about the result, and whether the byte array could be parsed.
+     * Runs a parser on a given input byte array, returning the resulting state. Running state.getResult() will return the result (if parsing was successful). If parsing failed, state.isException() will return true, and state.getException() will return the exception.
+     * @param input The byte array input to this parser.
+     * @return The resulting parser state.
      */
-    public ParserState<ResultType> run(byte[] bytes) {
-        return parse(new ParserState<>(bytes));
+    public ParserState<ResultType> run(byte[] input) {
+        return execute(new ParserState<>(new BytesParserInput(input)));
     }
 
     /**
-     * Runs a parser on a given token list. The returned value is a `ParserState` with a `.getResult()` method to get the result of parsing. If the parser fails, the value of `parserState.isException()` will be true, and the `parserState.getException()` will return the exception.
-     * @param tokens The token list to parse.
-     * @return A `ParserState` with information about the result, and whether the byte array could be parsed.
+     * Runs a parser on a given input token array, returning the resulting state. Running state.getResult() will return the result (if parsing was successful). If parsing failed, state.isException() will return true, and state.getException() will return the exception.
+     * @param input The token array input to this parser.
+     * @return The resulting parser state.
      */
-    public ParserState<ResultType> run(ArrayList<Token> tokens) {
-        return parse(new ParserState<>(tokens));
+    public ParserState<ResultType> run(Token<?>[] input) {
+        return execute(new ParserState<>(new TokensParserInput(input)));
     }
 
     /**
-     * Runs a parser on a given string and returns the result, or throws a ParserException if the parsing fails.
-     * @param input The string to parse.
+     * Runs a parser on a given input token array, returning the resulting state. Running state.getResult() will return the result (if parsing was successful). If parsing failed, state.isException() will return true, and state.getException() will return the exception.
+     * @param input The token array input to this parser.
+     * @return The resulting parser state.
+     */
+    public ParserState<ResultType> run(List<Token<?>> input) {
+        return execute(new ParserState<>(new TokensParserInput(input)));
+    }
+
+    /**
+     * Runs a parser on a given input, returning the resulting state. Running state.getResult() will return the result (if parsing was successful). If parsing failed, state.isException() will return true, and state.getException() will return the exception.
+     * @param input The input to this parser.
+     * @return The resulting parser state.
+     */
+    public ParserState<ResultType> run(ParserInput<?> input) {
+        return execute(new ParserState<>(input));
+    }
+
+    /**
+     * Runs a parser on a given input string. If parsing is successful, the result is immediately returned. If parsing fails, a ParserException is thrown.
+     * @param input The string input to this parser.
      * @return The result of parsing.
-     * @throws ParserException Thrown if the parser fails.
+     * @throws ParserException Thrown if parsing fails.
      */
     public ResultType getResult(String input) throws ParserException {
         ParserState<ResultType> state = run(input);
@@ -70,13 +139,13 @@ public abstract class Parser<ResultType> {
     }
 
     /**
-     * Runs a parser on a given byte array and returns the result, or throws a ParserException if the parsing fails.
-     * @param bytes The byte array to parse.
+     * Runs a parser on a given input byte array. If parsing is successful, the result is immediately returned. If parsing fails, a ParserException is thrown.
+     * @param input The byte array input to this parser.
      * @return The result of parsing.
-     * @throws ParserException Thrown if the parser fails.
+     * @throws ParserException Thrown if parsing fails.
      */
-    public ResultType getResult(byte[] bytes) throws ParserException {
-        ParserState<ResultType> state = run(bytes);
+    public ResultType getResult(byte[] input) throws ParserException {
+        ParserState<ResultType> state = run(input);
         if (state.isException()) {
             throw state.getException();
         }
@@ -85,13 +154,13 @@ public abstract class Parser<ResultType> {
     }
 
     /**
-     * Runs a parser on a given token list and returns the result, or throws a ParserException if the parsing fails.
-     * @param tokens The token list to parse.
+     * Runs a parser on a given input token array. If parsing is successful, the result is immediately returned. If parsing fails, a ParserException is thrown.
+     * @param input The token array input to this parser.
      * @return The result of parsing.
-     * @throws ParserException Thrown if the parser fails.
+     * @throws ParserException Thrown if parsing fails.
      */
-    public ResultType getResult(ArrayList<Token> tokens) throws ParserException {
-        ParserState<ResultType> state = run(tokens);
+    public ResultType getResult(Token<?>[] input) throws ParserException {
+        ParserState<ResultType> state = run(input);
         if (state.isException()) {
             throw state.getException();
         }
@@ -100,148 +169,162 @@ public abstract class Parser<ResultType> {
     }
 
     /**
-     * Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
-     * @param input The String to parse.
-     * @param errorTransformer The error transformer, which modifies the result if an error is encountered.
-     * @param successTransformer The success transformer, which modifies the result if no error is encountered.
-     * @return The modified parser state.
+     * Runs a parser on a given input token list. If parsing is successful, the result is immediately returned. If parsing fails, a ParserException is thrown.
+     * @param input The token list input to this parser.
+     * @return The result of parsing.
+     * @throws ParserException Thrown if parsing fails.
      */
-    public ParserState<ResultType> fork(String input, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
+    public ResultType getResult(List<Token<?>> input) throws ParserException {
+        ParserState<ResultType> state = run(input);
+        if (state.isException()) {
+            throw state.getException();
+        }
+
+        return state.getResult();
+    }
+
+    /**
+     * Runs a parser on a given input. If parsing is successful, the result is immediately returned. If parsing fails, a ParserException is thrown.
+     * @param input The input to this parser.
+     * @return The result of parsing.
+     * @throws ParserException Thrown if parsing fails.
+     */
+    public ResultType getResult(ParserInput<?> input) throws ParserException {
+        ParserState<ResultType> state = run(input);
+        if (state.isException()) {
+            throw state.getException();
+        }
+
+        return state.getResult();
+    }
+
+    /**
+     * Runs a parser on a given input string, and transforms the resulting state based on whether parsing was successful or not. The transformed state is returned.
+     * @param input The input string.
+     * @param successTransformer The success transformer, if parsing is successful.
+     * @param errorTransformer The error transformer, if parsing fails.
+     * @return The transformed result.
+     */
+    public ParserState<ResultType> fork(String input, SuccessTransformer<ResultType> successTransformer, ErrorTransformer<ResultType> errorTransformer) {
         ParserState<ResultType> state = run(input);
 
         if (state.isException()) {
             return errorTransformer.transform(state.getException().getMessage(), state);
+        } else {
+            return successTransformer.transform(state.getResult(), state);
         }
-
-        return successTransformer.transform(state.getResult(), state);
     }
 
     /**
-     * Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
-     * @param bytes The byte array to parse.
-     * @param errorTransformer The error transformer, which modifies the result if an error is encountered.
-     * @param successTransformer The success transformer, which modifies the result if no error is encountered.
-     * @return The modified parser state.
+     * Runs a parser on a given input byte array, and transforms the resulting state based on whether parsing was successful or not. The transformed state is returned.
+     * @param input The input byte array.
+     * @param successTransformer The success transformer, if parsing is successful.
+     * @param errorTransformer The error transformer, if parsing fails.
+     * @return The transformed result.
      */
-    public ParserState<ResultType> fork(byte[] bytes, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
-        ParserState<ResultType> state = run(bytes);
+    public ParserState<ResultType> fork(byte[] input, SuccessTransformer<ResultType> successTransformer, ErrorTransformer<ResultType> errorTransformer) {
+        ParserState<ResultType> state = run(input);
 
         if (state.isException()) {
             return errorTransformer.transform(state.getException().getMessage(), state);
+        } else {
+            return successTransformer.transform(state.getResult(), state);
         }
-
-        return successTransformer.transform(state.getResult(), state);
     }
 
     /**
-     * Runs a parser, and transforms the output based on whether the parser succeeded or failed. If the parser succeeds, successTransformer is run, and if the parser fails, errorTransformer is run.
-     * @param tokens The token list to parse.
-     * @param errorTransformer The error transformer, which modifies the result if an error is encountered.
-     * @param successTransformer The success transformer, which modifies the result if no error is encountered.
-     * @return The modified parser state.
+     * Runs a parser on a given input token array, and transforms the resulting state based on whether parsing was successful or not. The transformed state is returned.
+     * @param input The input token array.
+     * @param successTransformer The success transformer, if parsing is successful.
+     * @param errorTransformer The error transformer, if parsing fails.
+     * @return The transformed result.
      */
-    public ParserState<ResultType> fork(ArrayList<Token> tokens, ErrorTransformer<ResultType> errorTransformer, SuccessTransformer<ResultType> successTransformer) {
-        ParserState<ResultType> state = run(tokens);
+    public ParserState<ResultType> fork(Token<?>[] input, SuccessTransformer<ResultType> successTransformer, ErrorTransformer<ResultType> errorTransformer) {
+        ParserState<ResultType> state = run(input);
 
         if (state.isException()) {
             return errorTransformer.transform(state.getException().getMessage(), state);
+        } else {
+            return successTransformer.transform(state.getResult(), state);
         }
-
-        return successTransformer.transform(state.getResult(), state);
     }
 
     /**
-     * Maps the result of a parser to a new value. Useful for processing the result in the parser itself, instead of externally.
-     * @param mapper A lambda which takes a value, the result of the parser, and returns a new value.
-     * @param <NewResultType> The type of the new result.
-     * @return A new parser, which results in the return value of the mapper.
+     * Runs a parser on a given input token list, and transforms the resulting state based on whether parsing was successful or not. The transformed state is returned.
+     * @param input The input token list.
+     * @param successTransformer The success transformer, if parsing is successful.
+     * @param errorTransformer The error transformer, if parsing fails.
+     * @return The transformed result.
      */
-    public <NewResultType> Parser<NewResultType> map(final ResultMapper<ResultType, NewResultType> mapper) {
-        final Parser<ResultType> self = this;
+    public ParserState<ResultType> fork(List<Token<?>> input, SuccessTransformer<ResultType> successTransformer, ErrorTransformer<ResultType> errorTransformer) {
+        ParserState<ResultType> state = run(input);
 
-        return new Parser<>() {
-            @Override
-            public ParserState<NewResultType> parse(ParserState<?> state) {
-                ParserState<ResultType> newState = self.parse(state);
-
-                if (newState.isException()) {
-                    return newState.updateType();
-                }
-
-                return newState.updateState(newState.getIndex(), mapper.map(newState.getResult())).setIgnoreResult(newState.isIgnoreResult());
-            }
-
-            @Override
-            public String getParserName() {
-                return self.getParserName();
-            }
-
-            @Override
-            public String getExpectedValueName() {
-                return self.getExpectedValueName();
-            }
-        };
+        if (state.isException()) {
+            return errorTransformer.transform(state.getException().getMessage(), state);
+        } else {
+            return successTransformer.transform(state.getResult(), state);
+        }
     }
 
     /**
-     * A utility method, used to cast the result of a parser to a different type. In many situations, this method will be called without the type generic, if the type can be inferred.
-     * @param <NewResultType> The type to cast the result to.
-     * @return A parser which results in the casted result.
+     * Runs a parser on a given input, and transforms the resulting state based on whether parsing was successful or not. The transformed state is returned.
+     * @param input The input.
+     * @param successTransformer The success transformer, if parsing is successful.
+     * @param errorTransformer The error transformer, if parsing fails.
+     * @return The transformed result.
      */
-    public <NewResultType> Parser<NewResultType> mapType() {
+    public ParserState<ResultType> fork(ParserInput<?> input, SuccessTransformer<ResultType> successTransformer, ErrorTransformer<ResultType> errorTransformer) {
+        ParserState<ResultType> state = run(input);
+
+        if (state.isException()) {
+            return errorTransformer.transform(state.getException().getMessage(), state);
+        } else {
+            return successTransformer.transform(state.getResult(), state);
+        }
+    }
+
+    /**
+     * Maps a result of this parser to a new result. Useful for transforming the result of a parser within the parser itself.
+     * @param mapper A lambda taking in a result and returning a new result.
+     * @param <NewResultType> The new result type of the parser.
+     * @return The new parser, whose result will get mapped.
+     */
+    public <NewResultType> MappedParser<ResultType, NewResultType> map(ParserResultMapper<ResultType, NewResultType> mapper) {
+        return mapState(state -> state.updateState(state.getIndex(), mapper.map(state.getResult())));
+    }
+
+    /**
+     * Maps a resulting state of this parser to a new resulting state. Useful for transforming the state of a parser within the parser itself.
+     * @param mapper A lambda taking in a parser state and returning a new parser state.
+     * @param <NewResultType> The new result type of the parser.
+     * @return The new parser, whose result state will get mapped.
+     */
+    public <NewResultType> MappedParser<ResultType, NewResultType> mapState(ParserStateMapper<ResultType, NewResultType> mapper) {
+        return new MappedParser<>(this, mapper);
+    }
+
+    /**
+     * Maps the result of this parser by casting it to a new type.
+     * @param <NewResultType> The new type for the result to be casted to.
+     * @return The new parser, whose result will get casted.
+     */
+    public <NewResultType> MappedParser<ResultType, NewResultType> castMap() {
         return map(value -> (NewResultType) value);
     }
 
     /**
-     * Maps a resulting parser state to a new parser state. Can be useful for more advanced parsers, where the parser index, or the exception needs to be modified.
-     * @param mapper A lambda which takes a parser state, the resulting state of the parser, and returns a new parser state.
-     * @param <NewResultType> The result type of the new parser.
-     * @return A new parser, which ends with a parser state mapped by the mapper.
+     * Maps the result of this parser to a string, calling the toString() function.
+     * @return The new parser, whose result will be stringified.
      */
-    public <NewResultType> Parser<NewResultType> mapState(ParserState.StateMapper<ResultType, NewResultType> mapper) {
-        final Parser<ResultType> self = this;
-
-        return new Parser<>() {
-            @Override
-            public ParserState<NewResultType> parse(ParserState<?> state) {
-                ParserState<ResultType> newState = self.parse(state);
-
-                if (newState.isException()) {
-                    return newState.updateType();
-                }
-
-                return mapper.map(newState);
-            }
-
-            @Override
-            public String getParserName() {
-                return self.getParserName();
-            }
-
-            @Override
-            public String getExpectedValueName() {
-                return self.getExpectedValueName();
-            }
-        };
-    }
-
-    /**
-     * Maps a parser to result in a string.
-     * @return A parser which results in a string.
-     */
-    public Parser<String> asString() {
+    public MappedParser<ResultType, String> asString() {
         return map(Objects::toString);
     }
 
-    public interface ResultMapper<OldResultType, NewResultType> {
-        NewResultType map(OldResultType object);
-    }
-
-    public interface SuccessTransformer<ResultType> {
-        ParserState<ResultType> transform(ResultType object, ParserState<ResultType> state);
-    }
-
-    public interface ErrorTransformer<ResultType> {
-        ParserState<ResultType> transform(String message, ParserState<ResultType> state);
+    /**
+     * Maps the result of this parser to be ignored.
+     * @return The new parser, whose result will be ignored.
+     */
+    public MappedParser<ResultType, ResultType> ignore() {
+        return mapState(state -> state.setIgnoreResult(true).retype());
     }
 }

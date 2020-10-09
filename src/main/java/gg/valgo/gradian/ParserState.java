@@ -1,114 +1,100 @@
 package gg.valgo.gradian;
 
-import gg.valgo.gradian.input.BytesInputList;
-import gg.valgo.gradian.input.StringInputList;
-import gg.valgo.gradian.input.Token;
-import gg.valgo.gradian.input.TokenInputList;
-
-import java.util.ArrayList;
+import gg.valgo.gradian.input.ParserInput;
 
 /**
- * A parser state, used to represent the input, current index, result, and whether there was an exception in parsing.
- * @param <ResultType> The result type of the ParserState.
+ * A class keeping track of the current state of parsing. It keeps track of the input, the current parsing index, the result (and whether it should be ignored), and the parsing exception if parsing failed.
+ * @param <ResultType> The result type of this ParserState.
  */
 public class ParserState<ResultType> {
     /**
-     * The exception in parsing, if it exists. If there was no exception, this will be null.
+     * The input to the parser.
      */
-    private ParserException exception;
+    private ParserInput<?> input;
+
+    /**
+     * The current index of the parser in the input.
+     */
+    private int index = 0;
+
+    /**
+     * A parser exception, if the parser has failed.
+     */
+    private ParserException exception = null;
 
     /**
      * The result of parsing.
      */
-    private ResultType result = null;
+    private ResultType result;
 
     /**
-     * Whether to ignore the result in sequencing parsers.
+     * Whether the parsing result should be ignored.
      */
     private boolean ignoreResult = false;
 
     /**
-     * The input to the parser.
+     * Creates a new ParserState from an input.
+     * @param input The input.
      */
-    private ParserInputList<?> input;
-
-    /**
-     * Creates a new ParserState with a specified input string.
-     * @param input The input string.
-     */
-    public ParserState(String input) {
-        this.input = new StringInputList(input);
-    }
-
-    /**
-     * Creates a new ParserState with a specified input byte array.
-     * @param bytes The input byte array.
-     */
-    public ParserState(byte[] bytes) {
-        this.input = new BytesInputList(bytes);
-    }
-
-    /**
-     * Creates a new ParserState with a specified input token list.
-     * @param tokens The input token list.
-     */
-    public ParserState(ArrayList<Token> tokens) {
-        this.input = new TokenInputList(tokens);
-    }
-
-    /**
-     * Creates a new ParserState from an input list.
-     * @param input The input list.
-     */
-    public ParserState(ParserInputList<?> input) {
+    public ParserState(ParserInput<?> input) {
         this.input = input;
     }
 
     /**
-     * Gets the input to the parser.
+     * Gets the parser input.
      * @return The parser input.
      */
-    public ParserInputList<?> getInput() {
+    public ParserInput<?> getInput() {
         return input;
     }
 
     /**
-     * Sets the input to the parser.
-     * @param input The parser input.
-     */
-    public void setInput(ParserInputList<?> input) {
-        this.input = input;
-    }
-
-    /**
-     * Gets the current index of the parser.
-     * @return The index.
-     */
-    public int getIndex() {
-        return input.getIndex();
-    }
-
-    /**
-     * Sets the index of the ParserState.
-     * @param index The index.
+     * Sets the parser input.
+     * @param input The new parser input.
      * @return This ParserState, for method chaining.
      */
-    public ParserState<ResultType> setIndex(int index) {
-        input.setIndex(index);
+    public ParserState<ResultType> setInput(ParserInput<?> input) {
+        this.input = input;
         return this;
     }
 
     /**
-     * Gets the exception of this ParserState.
-     * @return The exception, or null if parsing was successful.
+     * Gets the current parser index.
+     * @return The current parser index.
+     */
+    public int getIndex() {
+        return index;
+    }
+
+    /**
+     * Sets the current parser index.
+     * @param index The new parser index.
+     * @return This ParserState, for method chaining.
+     */
+    public ParserState<ResultType> setIndex(int index) {
+        this.index = index;
+        return this;
+    }
+
+    /**
+     * Gets whether the parser had an exception (whether it failed).
+     * @return Whether the parser had an exception.
+     */
+    public boolean isException() {
+        return exception != null;
+    }
+
+    /**
+     * Gets the parser exception, if it exists.
+     * @return The parser exception, or null if there was no exception.
      */
     public ParserException getException() {
         return exception;
     }
 
     /**
-     * Sets the exception of this ParserState.
-     * @param exception The exception.
+     * Sets the parser exception.
+     * @param exception The new parser exception, or null if the exception is to be cleared.
      * @return This ParserState, for method chaining.
      */
     public ParserState<ResultType> setException(ParserException exception) {
@@ -117,7 +103,7 @@ public class ParserState<ResultType> {
     }
 
     /**
-     * Gets the result of parsing.
+     * Gets the parser result.
      * @return The result of parsing.
      */
     public ResultType getResult() {
@@ -125,20 +111,17 @@ public class ParserState<ResultType> {
     }
 
     /**
-     * Sets the result of parsing.
-     * @param newResult The new result.
-     * @param <NewResultType> The type of the new result.
+     * Sets the parser result.
+     * @param result The new result of parsing.
      * @return This ParserState, for method chaining.
      */
-    public <NewResultType> ParserState<NewResultType> setResult(NewResultType newResult) {
-        ParserState<NewResultType> newState = new ParserState<>(input);
-        newState.setException(exception);
-        newState.result = newResult;
-        return newState;
+    public ParserState<ResultType> setResult(ResultType result) {
+        this.result = result;
+        return this;
     }
 
     /**
-     * Gets whether the result should be ignored.
+     * Gets whether the result should be ignored (eg. in a list result).
      * @return Whether the result should be ignored.
      */
     public boolean isIgnoreResult() {
@@ -156,93 +139,85 @@ public class ParserState<ResultType> {
     }
 
     /**
-     * Gets whether there was an exception in parsing.
-     * @return Whether there was an exception in parsing.
-     */
-    public boolean isException() {
-        return getException() != null;
-    }
-
-    /**
-     * Duplicates this ParserState.
-     * @return A copy of this ParserState.
+     * Duplicates this ParserState, and returns the duplicate.
+     * @return The duplicate ParserState.
      */
     public ParserState<ResultType> duplicate() {
-        ParserState<ResultType> duplicated = new ParserState<ResultType>(input).setException(exception).setResult(result).setIgnoreResult(ignoreResult);
-        return duplicated;
+        return new ParserState<ResultType>(input).setIndex(index).setException(exception).setResult(result).setIgnoreResult(ignoreResult);
     }
 
     /**
-     * Updates the result type of the ParserState.
-     * @param <NewResultType> The new resultType.
-     * @return A duplicated ParserState, with an updated result type.
+     * Converts the result type of this ParserState, and returns the new ParserState.
+     * @param <NewResultType> The new result type.
+     * @return The retyped ParserState.
      */
-    public <NewResultType> ParserState<NewResultType> updateType() {
-        return duplicate().setResult(null);
+    public <NewResultType> ParserState<NewResultType> retype() {
+        return new ParserState<NewResultType>(input).setIndex(index).setException(exception).setResult(null).setIgnoreResult(ignoreResult);
     }
 
     /**
-     * Updates the state of the ParserState, used when parsing is successful.
-     * @param index The new index of parsing.
-     * @param result The result of parsing.
-     * @param <NewResultType> The type of the result.
-     * @return The duplicated ParserState, with the updated data.
+     * Updates the ParserState with a new index and result.
+     * @param index The new index.
+     * @param result The new result.
+     * @param <NewResultType> The type of the new result.
+     * @return The updated ParserState.
      */
     public <NewResultType> ParserState<NewResultType> updateState(int index, NewResultType result) {
-        return duplicate().setIndex(index).setResult(result).setIgnoreResult(false);
+        return this.<NewResultType>retype().setIndex(index).setResult(result).setIgnoreResult(false);
     }
 
     /**
-     * Updates the exception of the ParserState with a message.
+     * Updates the ParserState with an exception,= with a specific message.
      * @param message The exception message.
-     * @return The duplicated ParserState, with the updated exception.
+     * @return The updated ParserState.
      */
     public ParserState<ResultType> withException(String message) {
         return duplicate().setException(new ParserException(message));
     }
 
     /**
-     * Formats an exception to be in the format "Expected *some value* but got *different value* instead."
-     * @param parser The parser which threw this exception.
-     * @param actualValue The value the parser got, instead of what it was expecting.
-     * @return The duplicated ParserState, with the updated exception.
+     * Updates the ParserState with an exception, with a formatted message (including the parser index).
+     * @param parser The parser which failed and threw this exception.
+     * @param message The message of what went wrong.
+     * @return The updated ParserState.
      */
-    public ParserState<ResultType> formatException(Parser<?> parser, String actualValue) {
-        return withException("Exception in " + parser.getParserName() + " parser (position " + getIndex() + "): Expected " + parser.getExpectedValueName() + " but got " + actualValue + " instead.");
+    public ParserState<ResultType> formatException(Parser<?> parser, String message) {
+        return withException("Exception in " + parser.getParserName() + " parser (position " + index + "): " + message);
     }
 
     /**
-     * Updates this parser state to fail with a "bad input type" error message.
-     * @param parser The parser which failed.
-     * @return This parser state, for method chaining.
+     * Updates the ParserState with an exception, with an "expected ___ but got ___ instead" message.
+     * @param parser The parser which failed and threw this exception.
+     * @param expected The expected value that the parser needed.
+     * @param actual The actual value that the parser got instead.
+     * @return The updated ParserState.
      */
-    public ParserState<ResultType> badInputType(Parser<?> parser) {
-        return withException("Exception in " + parser.getParserName() + ": Bad input type!");
+    public ParserState<ResultType> formatExpectedException(Parser<?> parser, String expected, String actual) {
+        return formatException(parser, "Expected " + expected + " but got " + actual + " instead.");
     }
 
     /**
-     * Returns a string representation of this parser state.
-     * @return The representation of this parser state.
+     * Updated the ParserState with an exception, with a "bad input type" message.
+     * @param parser The parser which failed and threw this exception.
+     * @param expected The expected input type that the parser needed.
+     * @param actual The actual input type that the parser got instead.
+     * @return The updated ParserState.
+     */
+    public ParserState<ResultType> formatBadInputTypeException(Parser<?> parser, String expected, String actual) {
+        return formatException(parser, "Bad input type! Expected " + expected + " but got " + actual + " instead.");
+    }
+
+    /**
+     * Converts this parser state to a string representation.
+     * @return The string representation.
      */
     @Override
     public String toString() {
-        return  "ParserState {\n" +
-                "  isException = " + isException() + "\n" +
-                (isException() ? ("  exception = " + getException().getMessage() + "\n") : "") +
-                (!isException() ? ("  result = " + getResult() + "\n") : "") +
-                "  input = " + getInput() + "\n" +
-                "  index = " + getIndex() + "\n" +
-                "}";
-    }
-
-    /**
-     * Runs System.out.println() on this parser state, logging it to the console. Useful for debugging.
-     */
-    public void debug() {
-        System.out.println(this);
-    }
-
-    public interface StateMapper<OldResultType, NewResultType> {
-        ParserState<NewResultType> map(ParserState<OldResultType> state);
+        return "ParserState {" +
+                "input = " + input +
+                ", index = " + index +
+                ", exception = " + exception +
+                ", result = " + result +
+                '}';
     }
 }
