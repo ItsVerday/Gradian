@@ -64,6 +64,7 @@ public abstract class Parser<ResultType> {
 
     /**
      * Runs a parser on a certain state, validating the state before running the parsing logic.
+     * @param state The current parser state.
      * @return The updated parser state.
      */
     public ParserState<ResultType> execute(ParserState<?> state) {

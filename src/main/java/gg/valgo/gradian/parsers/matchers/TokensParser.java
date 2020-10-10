@@ -78,8 +78,8 @@ public class TokensParser extends MultiParser<Token<?>> {
     }
 
     /**
-     * Formats the choices into a list of characters.
-     * @return The formatted choices.
+     * Formats the expected values.
+     * @return The formatted expected values.
      */
     private String formatExpected() {
         String result = "tokens ";
@@ -93,6 +93,6 @@ public class TokensParser extends MultiParser<Token<?>> {
             result = result.concat(tokens[i] + ", ");
         }
 
-        return result + "and " + tokens[tokens.length - 1] + "";
+        return result + "and " + tokens[tokens.length - 1];
     }
 }

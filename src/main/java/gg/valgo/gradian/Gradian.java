@@ -139,6 +139,24 @@ public class Gradian {
     }
 
     /**
+     * Parses a single byte in a byte array input. If the byte could not be found, or the the end of input has been reached, this parser will fail.
+     * @param b The byte to match.
+     * @return The oneByte parser.
+     */
+    public static Parser<Byte> oneByte(byte b) {
+        return bytes(b).index(0).setParserName("oneByte");
+    }
+
+    /**
+     * Parses a sequence of bytes in a byte array input. If the bytes could not be found, or the remaining input isn't long enough, this parser will fail.
+     * @param bytes The bytes to match.
+     * @return The bytes parser.
+     */
+    public static BytesParser bytes(byte... bytes) {
+        return new BytesParser(bytes);
+    }
+
+    /**
      * Parses an unsigned 1-byte binary value. This parser results in a long. This parser will fail if not enough bytes are left in the input.
      */
     public static final BinaryParser u8 = binary(1, false, false);

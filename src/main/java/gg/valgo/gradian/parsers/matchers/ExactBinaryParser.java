@@ -34,6 +34,7 @@ public class ExactBinaryParser extends Parser<Long> {
      * @param bytes The number of bytes to parse.
      * @param signed Whether the parsed value should be interpreted as signed.
      * @param littleEndian Whether the parsed value should be interpreted as little-endian.
+     * @param value The value to match.
      */
     public ExactBinaryParser(int bytes, boolean signed, boolean littleEndian, long value) {
         this.bytes = bytes;
