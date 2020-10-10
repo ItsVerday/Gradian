@@ -2,6 +2,9 @@ package gg.valgo.gradian.util.coroutine;
 
 import gg.valgo.gradian.ParserState;
 
+/**
+ * Represents the execution context of a coroutine in a coroutine parser.
+ */
 public class CoroutineExecutionContext {
     /**
      * The current parserState.

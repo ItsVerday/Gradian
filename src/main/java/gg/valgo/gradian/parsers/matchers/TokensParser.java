@@ -16,7 +16,7 @@ public class TokensParser extends MultiParser<Token<?>> {
     private Token<?>[] tokens;
 
     /**
-     * Creates a new TokensParser from
+     * Creates a new TokensParser from a list of tokens.
      * @param tokens The tokens to match.
      */
     public TokensParser(Token<?>... tokens) {

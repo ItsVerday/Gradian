@@ -143,6 +143,18 @@ public class ExpressionEval {
             function("acsc", args -> Math.asin(1 / args.get(0))),
             function("asec", args -> Math.acos(1 / args.get(0))),
             function("acot", args -> Math.asin(1 / args.get(0))),
+            function("fib", args -> {
+                double count = args.get(0);
+                long a = 0;
+                long b = 1;
+                for (int i = 0; i < count; i++) {
+                    long temp = a;
+                    a = b;
+                    b = b + temp;
+                }
+
+                return (double) a;
+            }),
             function("rand", args -> {
                 double min, max;
                 switch (args.size()) {
@@ -170,7 +182,7 @@ public class ExpressionEval {
     }
 
     public static void main(String[] args) throws ParserException {
-        System.out.println(eval("1"));
+        System.out.println(eval("fib(10)"));
     }
 
     public static Parser<Double> function(String name, ParserResultMapper<ArrayList<Double>, Double> func) {

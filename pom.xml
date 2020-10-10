@@ -29,6 +29,7 @@
                 </executions>
                 <configuration>
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                    <destDir>docs/javadocs</destDir>
                 </configuration>
             </plugin>
         </plugins>
