@@ -25,7 +25,7 @@ public class ParserState<ResultType> {
     /**
      * The result of parsing.
      */
-    private ResultType result;
+    private ResultType result = null;
 
     /**
      * Whether the parsing result should be ignored.

@@ -368,6 +368,18 @@ public class Gradian {
     }
 
     /**
+     * Parses a parser between two other parsers, which are ignored. This is internally treated as a sequence, and fails under the same circumstances.
+     * @param before The parser to parse before the value.
+     * @param after The parser to parse after the value.
+     * @param value The value parser, whose result will be returned.
+     * @param <ResultType> The result type of this parser.
+     * @return The between parser.
+     */
+    public static <ResultType> Parser<ResultType> between(Parser<?> before, Parser<?> after, Parser<ResultType> value) {
+        return anyTypeSequence(before, value, after).index(1).castMap();
+    }
+
+    /**
      * Parses a value repeatedly until it cannot parse any more of that value. This parser will always succeed. This parser works with any input type.
      * @param parser The parser to repeat.
      * @param <ResultType> The result type of the parser.
