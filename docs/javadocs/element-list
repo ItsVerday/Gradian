@@ -1,9 +1,10 @@
 gg.valgo.gradian
+gg.valgo.gradian.examples.expressioneval
+gg.valgo.gradian.examples.expressioneval.ast
 gg.valgo.gradian.input
 gg.valgo.gradian.parsers.combinators
 gg.valgo.gradian.parsers.matchers
 gg.valgo.gradian.parsers.util
 gg.valgo.gradian.parsers.util.peek
-gg.valgo.gradian.testing
 gg.valgo.gradian.util.coroutine
 gg.valgo.gradian.util.interfaces
